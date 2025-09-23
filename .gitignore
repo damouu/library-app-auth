@@ -26,3 +26,5 @@ Homestead.json
 .idea
 .gitignore
 database/seeders/seed.json
+composer.lock
+scratches/

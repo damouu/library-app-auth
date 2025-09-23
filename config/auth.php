@@ -14,8 +14,8 @@ return [
     */
 
     'defaults' => [
-        'guard' => env('AUTH_GUARD', 'web'),
-        'passwords' => env('AUTH_PASSWORD_BROKER', 'dedes'),
+        'guard' => env('AUTH_GUARD', 'api'),
+        'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
     ],
 
     /*
@@ -36,9 +36,9 @@ return [
     */
 
     'guards' => [
-        'web' => [
-            'driver' => 'session',
-            'provider' => 'dedes',
+        'api' => [
+            'driver' => 'jwt',
+            'provider' => 'users',
         ],
     ],
 
@@ -60,15 +60,11 @@ return [
     */
 
     'providers' => [
-        'dedes' => [
+        'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', App\Models\User::class),
+            'table' => 'users'
         ],
-
-        // 'dedes' => [
-        //     'driver' => 'database',
-        //     'table' => 'dedes',
-        // ],
     ],
 
     /*

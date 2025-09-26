@@ -8,6 +8,7 @@ Route::get('/user/{email}', [UserController::class, 'getUserByEmail']);
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/check', [AuthController::class, 'checkJWT']);
 
 Route::get('/', function () {
     return view('welcome');

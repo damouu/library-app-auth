@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use DateTime;
+use DateTimeZone;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,6 +14,8 @@ use Illuminate\Support\Facades\Hash;
 class AuthController extends Controller
 {
     /**
+     * function to allow a user to create an account that will be registered in the database.
+     *
      * @param Request $request
      * @return JsonResponse
      */
@@ -19,7 +24,7 @@ class AuthController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6',
+            'password' => 'required|string|min:6|confirmed',
         ]);
 
         $user = User::create([
@@ -34,7 +39,7 @@ class AuthController extends Controller
         ]);
         try {
             $token = Auth::login($user);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(['error' => 'Could not create token'], 500);
         }
         return response()->json([
@@ -61,7 +66,7 @@ class AuthController extends Controller
             if (!Hash::check($password, $user->password)) {
                 return response()->json(['error' => 'Invalid credentials'], 401);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(['error' => 'Invalid credentials'], 401);
         }
         try {
@@ -74,8 +79,45 @@ class AuthController extends Controller
                 'expires_in' => auth('api')->factory()->getTTL() * 60,
             ]);
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(['error' => 'Could not create token'], 500);
+        }
+    }
+
+    /**
+     * checks if the given token is still valid or expired by checking it's expired date to actual time.
+     * 取得されたのJWTの期限が切られたやらを確認する為にJWTのEXP＿DATEとヨーロッパの現在日時を比べるの関数です。
+     * そのJWTはまだ使えるならJWTの内に入ってるのユーザーIDをデータベースに有るかどうか確認してからtrueのリスポンすを返事する。s。
+     *
+     * @return JsonResponse returns a JsonResponse with a boolean value. if the token is still unexpired returns true.
+     * @throws Exception cheks if the user's id present in the token does exist or not in the database.
+     */
+    public function checkJWT(Request $request): JsonResponse
+    {
+        $token = $request->bearerToken();
+        $tokenDecoded = base64_decode($token);
+        $rere = explode("}", $tokenDecoded);
+        $piki = explode("{", $rere[1]);
+        $lolo = explode(",", $piki[1]);
+        foreach ($lolo as $value) {
+            $position = strpos($value, ':');
+            $key = (substr($value, 0, $position));
+            $value = (substr($value, $position + 1));
+            $arrayOfValue[$key] = $value;
+        }
+        $userID = substr($arrayOfValue['"sub"'], 1, strlen($arrayOfValue['"sub"']) - 2);
+        $tokenExpiredDate = new DateTime('@' . $arrayOfValue['"exp"']);
+        $today = new DateTime();
+        $today->setTimezone(new DateTimeZone('Europe/Paris'));
+        $tokenExpiredDate->setTimezone(new DateTimeZone('Europe/Paris'));
+        try {
+            if ((new User)->findOrFail($userID) && $tokenExpiredDate > $today) {
+                return response()->json(['ok' => true]);
+            } else {
+                return response()->json(['error' => 'invalid token'], 500);
+            }
+        } catch (Exception $exception) {
+            return response()->json(['error' => 'invalid token'], 500);
         }
     }
 }

@@ -50,7 +50,8 @@ class AuthController extends Controller
     }
 
     /**
-     * logs a user and return a JWT by  credentials through Basic auth.
+     * logs a user and return a JWT by credentials through Basic auth.
+     * 取得したのユーザーのcredentialsをデータベースに確認してから合ってるならJWTを作成して返す。
      *
      * @param Request $request
      * @return JsonResponse

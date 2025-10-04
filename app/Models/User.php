@@ -2,45 +2,22 @@
 
 namespace App\Models;
 
-use Illuminate\Auth\Authenticatable;
-use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use MongoDB\Laravel\Eloquent\Model;
-use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Model implements JWTSubject, AuthenticatableContract
+class User extends Model
 {
-    use SoftDeletes;
-    use Authenticatable;
+    use SoftDeletes, HasFactory, Notifiable;
 
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
     protected $table = 'users';
     protected $primaryKey = '_id';
-
-
-    /**
-     * Get the identifier that will be stored in the JWT token.
-     */
-    public function getJWTIdentifier()
-    {
-        return $this->getKey();
-    }
-
-//    public function getAuthPassword() {
-//        return $this->password;
-//    }
-
-    /**
-     * Return an array with custom claims to be added to the JWT token.
-     */
-    public function getJWTCustomClaims()
-    {
-        return [];
-    }
 
     /**
      * The attributes that are mass assignable.
@@ -62,6 +39,7 @@ class User extends Model implements JWTSubject, AuthenticatableContract
      */
     protected $hidden = [
         'password',
+        'remember_token',
     ];
 
     /**

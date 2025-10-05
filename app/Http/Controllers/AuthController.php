@@ -16,11 +16,14 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
     /**
-     * function to allow a user to create an account that will be registered in the database.
+     * ユーザーがアカウントを作成するように関数です。入力されたデータがデーターベースに登録されます。
+     * 入力されたのデータが適切な値である場合にJWTのペイロード部の内にはユーザーIDやstudentIDカード番号や有効期限を指定されるデータがencodeされてJWTを作成されてJSON形成のレスポンスにに返事されます。
+     * バリデーションで入力されたが適切な値ではない場合はバリデーションの例外のエーラを発生されます。
      *
      * @param Request $request
      * @return JsonResponse
      * @throws ValidationException
+     * @author damouu
      */
     public function register(Request $request): JsonResponse
     {
@@ -35,10 +38,14 @@ class AuthController extends Controller
             return response()->json($validator->errors()->first(), 400);
         }
 
+        $emailValid = $validator->valid()["email"];
+        $emailCrop = strpos($emailValid, "@");
+        $avatarImgUrl = $validator->valid()["name"] . "+" . (substr($emailValid, 0, $emailCrop));
+
         User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'avatar_img_URL' => $request->avatar_img_URL,
+            'avatar_img_URL' => "https://avatar.iran.liara.run/username?username=" . $avatarImgUrl,
             'studentCardUUID' => $request->studentCardUUID,
             'last_logged_in_at' => null,
             'deleted_at' => null,

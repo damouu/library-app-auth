@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use DateTime;
+use DateTimeZone;
 use Exception;
 use Firebase\JWT\ExpiredException;
 use Firebase\JWT\JWT;
@@ -23,6 +25,7 @@ class AuthController extends Controller
      * @param Request $request
      * @return JsonResponse
      * @throws ValidationException
+     * @throws Exception
      * @author damouu
      */
     public function register(Request $request): JsonResponse
@@ -47,7 +50,7 @@ class AuthController extends Controller
             'email' => $request->email,
             'avatar_img_URL' => "https://avatar.iran.liara.run/username?username=" . $avatarImgUrl,
             'studentCardUUID' => $request->studentCardUUID,
-            'last_logged_in_at' => null,
+            'last_loggedIn_at' => null,
             'deleted_at' => null,
             'updated_at' => null,
             'password' => Hash::make($request->password),
@@ -81,11 +84,12 @@ class AuthController extends Controller
 
     /**
      * logs a user and return a JWT by credentials through Basic auth.
-     * 取得したのユーザーのcredentialsをデータベースに確認してから合ってるならJWTを作成して返す。
+     * 取得したのユーザーのcredentialsをデータベースに確認してから合ってるならJWTは作成されてレスポンスで返されます。
      *
      * @param Request $request
      * @return JsonResponse
      * @throws ValidationException
+     * @throws Exception
      */
     public function login(Request $request): JsonResponse
     {
@@ -101,8 +105,11 @@ class AuthController extends Controller
             ]);
         }
 
-        $user->last_logged_in_at = now();
+        $time = new DateTime("now", new DateTimeZone("Europe/Paris"));
+        date_default_timezone_set('Europe/Paris');
+        $user->last_loggedIn_at = $time;
         $user->save();
+
         $key = 'example_key';
         $payload = [
             'iss' => 'http://example.org',
@@ -140,6 +147,39 @@ class AuthController extends Controller
             $decoded = JWT::decode($token, new Key($key, 'HS256'));
             if ((new User)->findOrFail($decoded->user_id)) {
                 return response()->json(['message' => true]);
+            }
+        } catch (ExpiredException) {
+            $message = ['message' => false];
+        }
+        return response()->json($message, 400);
+    }
+
+
+    /**
+     * この関数によっては取得したのJWTにユーザーID部でログインされているのみのユーザーの個人データをデーターベースに取得されてレスポンスに返事されます。
+     * JWTの有効期限されているならExpiredExceptionで例外のエーラを発生されます。
+     *
+     * @param Request $request
+     * @return JsonResponse
+     * @throws ExpiredException
+     */
+    public function getUserProfile(Request $request): JsonResponse
+    {
+        $token = $request->bearerToken();
+        $key = 'example_key';
+        try {
+            $decoded = JWT::decode($token, new Key($key, 'HS256'));
+            $user = (new User)->findOrFail($decoded->user_id);
+            if ($decoded->user_id == $user->id) {
+                $userData = array(
+                    "email" => $user->getAttribute('email'),
+                    "name" => $user->getAttribute('name'),
+                    "studentCardID" => $user->getAttribute('studentCardUUID'),
+                    "last_loggedIn_at" => $user->getAttribute('last_loggedIn_at')->format('Y-m-d H:i:s'),
+                    "avatar_img_URL" => $user->getAttribute('avatar_img_URL'),
+                    "created_at" => $user->getAttribute('created_at')->format('Y-m-d H:i:s'));
+
+                return response()->json(['message' => true, "data" => $userData]);
             }
         } catch (ExpiredException) {
             $message = ['message' => false];

@@ -186,4 +186,31 @@ class AuthController extends Controller
         }
         return response()->json($message, 400);
     }
+
+
+    /**
+     * ログインされているのユーザーを削除するの関数です。
+     * 削除と言うよりIlluminateのORMライブラリーでユーザーテーブルのdeleted_at欄に現実の日付を追加されて保存されます。
+     * そうすれば、データーベースにユーザーのデータがされていたままだがIlluminateのORMでユーザーを検索されたら削除されているユーザーが出力されません。
+     *
+     * @param Request $request
+     * @return JsonResponse
+     * @throws ExpiredException
+     */
+    public function deleteUser(Request $request): JsonResponse
+    {
+        $token = $request->bearerToken();
+        $key = 'example_key';
+        try {
+            $decoded = JWT::decode($token, new Key($key, 'HS256'));
+            $user = (new User)->findOrFail($decoded->user_id);
+            if ($decoded->user_id == $user->id) {
+                $user->delete();
+                return response()->json(['data' => true, "message" => "user deleted successfully"]);
+            }
+        } catch (ExpiredException) {
+            $message = ['message' => false];
+        }
+        return response()->json($message, 400);
+    }
 }

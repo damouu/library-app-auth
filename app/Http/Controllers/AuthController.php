@@ -9,11 +9,14 @@ use Exception;
 use Firebase\JWT\ExpiredException;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
+use GuzzleHttp\Exception\ClientException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use Ramsey\Uuid\Uuid;
 
 class AuthController extends Controller
 {
@@ -44,12 +47,13 @@ class AuthController extends Controller
         $emailValid = $validator->valid()["email"];
         $emailCrop = strpos($emailValid, "@");
         $avatarImgUrl = $validator->valid()["name"] . "+" . (substr($emailValid, 0, $emailCrop));
+        $uuid = Uuid::uuid4()->toString();;
 
         User::create([
             'name' => $request->name,
             'email' => $request->email,
             'avatar_img_URL' => "https://avatar.iran.liara.run/username?username=" . $avatarImgUrl,
-            'studentCardUUID' => $request->studentCardUUID,
+            'studentCardUUID' => $uuid,
             'last_loggedIn_at' => null,
             'deleted_at' => null,
             'updated_at' => null,
@@ -64,6 +68,16 @@ class AuthController extends Controller
             ]);
 
         } else {
+            try {
+                Http::withHeaders([
+                    'Accept' => 'application/json',
+                    'Content-Type' => 'application/json',
+                    'Origin' => 'http://localhost:8080'
+                ])->post('http://172.23.0.5:8083/api/memberCard/' . $uuid);
+            } catch (ClientException $e) {
+                var_dump($e->getResponse());
+            }
+
             $key = 'example_key';
             $payload = [
                 'iss' => 'http://example.org',

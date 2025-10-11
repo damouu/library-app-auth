@@ -34,7 +34,7 @@ class AuthController extends Controller
     public function register(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'userName' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6|confirmed',
             'password_confirmation' => 'required|string|min:6',
@@ -46,14 +46,14 @@ class AuthController extends Controller
 
         $emailValid = $validator->valid()["email"];
         $emailCrop = strpos($emailValid, "@");
-        $avatarImgUrl = $validator->valid()["name"] . "+" . (substr($emailValid, 0, $emailCrop));
+        $avatarImgUrl = $validator->valid()["userName"] . "+" . (substr($emailValid, 0, $emailCrop));
         $uuid = Uuid::uuid4()->toString();;
 
         User::create([
-            'name' => $request->name,
+            'userName' => $request->userName,
             'email' => $request->email,
             'avatar_img_URL' => "https://avatar.iran.liara.run/username?username=" . $avatarImgUrl,
-            'studentCardUUID' => $uuid,
+            'memberCardUUID' => $uuid,
             'last_loggedIn_at' => null,
             'deleted_at' => null,
             'updated_at' => null,

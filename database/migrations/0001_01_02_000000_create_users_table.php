@@ -1,10 +1,12 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use MongoDB\Laravel\Schema\Blueprint;
 
 return new class extends Migration {
+    protected $connection = 'mongodb';
+
     /**
      * Run the migrations.
      */
@@ -12,10 +14,10 @@ return new class extends Migration {
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('userName')->unique();
             $table->string('email')->unique();
             $table->string('avatar_img_URL')->unique()->nullable();
-            $table->uuid('studentCardUUID')->nullable()->unique();
+            $table->uuid('memberCardUUID')->nullable()->unique();
             $table->string('password');
             $table->dateTime('last_loggedIn_at')->nullable();
             $table->softDeletesDatetime('deleted_date')->nullable();

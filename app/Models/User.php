@@ -25,11 +25,11 @@ class User extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'userName',
         'email',
         'password',
         'avatar_img_URL',
-        'studentCardUUID'
+        'memberCardUUID'
     ];
 
     /**
@@ -38,8 +38,7 @@ class User extends Model
      * @var list<string>
      */
     protected $hidden = [
-        'password',
-        'remember_token',
+        'password'
     ];
 
     /**
@@ -53,7 +52,6 @@ class User extends Model
             'created_at' => 'datetime',
             'deleted_at' => 'datetime',
             'last_loggedIn_at' => 'datetime',
-
         ];
     }
 }

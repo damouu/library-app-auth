@@ -14,6 +14,10 @@ return [
     |
     */
 
+    'member_card' => [
+        'url' => env('MEMBER_CARD_SERVICE_URL'),
+    ],
+
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],

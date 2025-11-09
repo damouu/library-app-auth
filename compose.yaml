@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   php:
-    image: damou/laravel-mongo:3
+    image: damou/laravel-api-ssl-2:latest
     container_name: php-library-app
     volumes:
       - .:/var/www/html/

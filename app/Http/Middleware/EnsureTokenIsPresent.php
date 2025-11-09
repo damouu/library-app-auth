@@ -15,10 +15,20 @@ class EnsureTokenIsPresent
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $origin = $request->header('Origin');
-        if (!$request->bearerToken() || $origin != 'http://localhost:3000/' || !$request->isMethod('POST') || !$request->accepts('application/json')) {
-            return response()->json(['message' => false], 401);
+        $authHeader = $request->header('Authorization');
+
+        if (empty($authHeader)) {
+            return response()->json(['message' => 'Missing Authorization header'], 401);
         }
+
+        if (!str_starts_with($authHeader, 'Bearer ')) {
+            return response()->json(['message' => 'Invalid Authorization header format'], 401);
+        }
+
+        if (!$request->acceptsJson()) {
+            return response()->json(['message' => 'Client must accept JSON'], 406);
+        }
+        
         return $next($request);
     }
 }

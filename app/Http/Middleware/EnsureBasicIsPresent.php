@@ -15,12 +15,20 @@ class EnsureBasicIsPresent
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $authRequest = $request->header('Authorization');
-        $origin = $request->header('Origin');
-        $basicIsPresent = substr($authRequest, 0, 5);
-        if ($origin != 'http://localhost:3000' || !$basicIsPresent || !$request->header('Authorization') || !$request->isMethod('POST') || !$request->accepts('application/json')) {
-            return response()->json(['message' => false], 401);
+        $authHeader = $request->header('Authorization');
+
+        if (empty($authHeader)) {
+            return response()->json(['message' => 'Missing Authorization header'], 401);
         }
+
+        if (!str_starts_with($authHeader, 'Basic ')) {
+            return response()->json(['message' => 'Invalid Authorization header format'], 401);
+        }
+
+        if (!$request->acceptsJson()) {
+            return response()->json(['message' => 'Client must accept JSON'], 406);
+        }
+
         return $next($request);
     }
 }

@@ -28,3 +28,4 @@ Homestead.json
 database/seeders/seed.json
 composer.lock
 scratches/
+keys/

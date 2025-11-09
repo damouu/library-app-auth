@@ -1,5 +1,5 @@
 # Use the official PHP image as a base image
-FROM damou/library-app:api-php
+FROM damou/laravel-mongo:3
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -17,8 +17,13 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     libpq-dev \
     libonig-dev \
+    libssl-dev \
+    pkg-config \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd
+    && docker-php-ext-install -j$(nproc) gd \
+    && docker-php-ext-install pdo pdo_mysql pdo_pgsql mbstring zip exif pcntl \
+    && pecl install mongodb \
+    && docker-php-ext-enable mongodb
 
 RUN docker-php-ext-install pdo pdo_mysql pdo_pgsql mbstring zip exif pcntl
 

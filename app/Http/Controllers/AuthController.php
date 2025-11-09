@@ -2,24 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use DateTime;
-use DateTimeZone;
+use App\Http\Requests\UserRequest;
+use App\Services\AuthService;
 use Exception;
 use Firebase\JWT\ExpiredException;
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
-use GuzzleHttp\Exception\ClientException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
-use Ramsey\Uuid\Uuid;
 
 class AuthController extends Controller
 {
+    public function __construct(protected AuthService $authService)
+    {
+    }
+
     /**
      * ユーザーがアカウントを作成するように関数です。入力されたデータがデーターベースに登録されます。
      * 入力されたのデータが適切な値である場合にJWTのペイロード部の内にはユーザーIDやstudentIDカード番号や有効期限を指定されるデータがencodeされてJWTを作成されてJSON形成のレスポンスにに返事されます。
@@ -31,65 +27,13 @@ class AuthController extends Controller
      * @throws Exception
      * @author damouu
      */
-    public function register(Request $request): JsonResponse
+    public function register(UserRequest $userRequest): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'userName' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6|confirmed',
-            'password_confirmation' => 'required|string|min:6',
-        ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors()->first(), 400);
-        }
+        $validatedData = $userRequest->validated();
 
-        $emailValid = $validator->valid()["email"];
-        $emailCrop = strpos($emailValid, "@");
-        $avatarImgUrl = $validator->valid()["userName"] . "+" . (substr($emailValid, 0, $emailCrop));
-        $uuid = Uuid::uuid4()->toString();;
+        $jwt = $this->authService->register($validatedData);
 
-        User::create([
-            'userName' => $request->userName,
-            'email' => $request->email,
-            'avatar_img_URL' => "https://avatar.iran.liara.run/username?username=" . $avatarImgUrl,
-            'memberCardUUID' => $uuid,
-            'last_loggedIn_at' => null,
-            'deleted_at' => null,
-            'updated_at' => null,
-            'password' => Hash::make($request->password),
-        ]);
-
-        $user = User::where('email', $request->email)->firstOrFail();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
-
-        } else {
-            try {
-                Http::withHeaders([
-                    'Accept' => 'application/json',
-                    'Content-Type' => 'application/json',
-                    'Origin' => 'http://localhost:8080'
-                ])->post('http://172.23.0.5:8083/api/memberCard/' . $uuid);
-            } catch (ClientException $e) {
-                var_dump($e->getResponse());
-            }
-
-            $key = 'example_key';
-            $payload = [
-                'iss' => 'http://example.org',
-                'aud' => 'http://example.com',
-                'nbf' => 1357000000,
-                'iat' => time(),
-                'exp' => time() + 3600,
-                'user_id' => $user->id,
-                'user_studentCardUUID' => $user->studentCardUUID
-            ];
-            $jwt = JWT::encode($payload, $key, 'HS256');
-        }
         return response()->json([
             'message' => true,
             'token' => $jwt,
@@ -107,65 +51,19 @@ class AuthController extends Controller
      */
     public function login(Request $request): JsonResponse
     {
-        $authorization = base64_decode(substr($request->header('Authorization'), 6));
-        $position = strpos($authorization, ':');
-        $password = substr($authorization, $position + 1);
-        $email = substr($authorization, 0, $position);
-        $user = User::where("email", $email)->firstOrFail();
+        $email = $request->getUser();
+        $password = $request->getPassword();
 
-        if (!Hash::check($password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
+        if (!$email || !$password) {
+            return response()->json(['message' => 'Missing credentials'], 401);
         }
 
-        $time = new DateTime("now", new DateTimeZone("Europe/Paris"));
-        date_default_timezone_set('Europe/Paris');
-        $user->last_loggedIn_at = $time;
-        $user->save();
-
-        $key = 'example_key';
-        $payload = [
-            'iss' => 'http://example.org',
-            'aud' => 'http://example.com',
-            'nbf' => 1357000000,
-            'iat' => time(),
-            'exp' => time() + 3600,
-            'user_id' => $user->id,
-            'user_studentCardUUID' => $user->studentCardUUID
-        ];
-
-        $jwt = JWT::encode($payload, $key, 'HS256');
+        $jwt = $this->authService->login($email, $password);
 
         return response()->json([
             'message' => true,
             'token' => $jwt,
         ]);
-    }
-
-    /**
-     * checks if the given token is still valid or expired by checking it's expired date to actual time.
-     * 取得されたのJWTの期限が切られたやらを確認する為にJWTのEXP＿DATEとヨーロッパの現在日時を比べるの関数です。
-     * そのJWTはまだ使えるならJWTの内に入ってるのユーザーIDをデータベースに有るかどうか確認してからtrueのリスポンすを返事する。s。
-     *
-     * @param Request $request
-     * @return JsonResponse
-     * @throws Exception
-     */
-    public function checkJWT(Request $request): JsonResponse
-    {
-        $token = $request->bearerToken();
-        $key = 'example_key';
-        $message = '';
-        try {
-            $decoded = JWT::decode($token, new Key($key, 'HS256'));
-            if ((new User)->findOrFail($decoded->user_id)) {
-                return response()->json(['message' => true]);
-            }
-        } catch (ExpiredException) {
-            $message = ['message' => false];
-        }
-        return response()->json($message, 400);
     }
 
 
@@ -180,25 +78,10 @@ class AuthController extends Controller
     public function getUserProfile(Request $request): JsonResponse
     {
         $token = $request->bearerToken();
-        $key = 'example_key';
-        try {
-            $decoded = JWT::decode($token, new Key($key, 'HS256'));
-            $user = (new User)->findOrFail($decoded->user_id);
-            if ($decoded->user_id == $user->id) {
-                $userData = array(
-                    "email" => $user->getAttribute('email'),
-                    "name" => $user->getAttribute('name'),
-                    "studentCardID" => $user->getAttribute('studentCardUUID'),
-                    "last_loggedIn_at" => $user->getAttribute('last_loggedIn_at')->format('Y-m-d H:i:s'),
-                    "avatar_img_URL" => $user->getAttribute('avatar_img_URL'),
-                    "created_at" => $user->getAttribute('created_at')->format('Y-m-d H:i:s'));
 
-                return response()->json(['message' => true, "data" => $userData]);
-            }
-        } catch (ExpiredException) {
-            $message = ['message' => false];
-        }
-        return response()->json($message, 400);
+        $response = $this->authService->getUserProfile($token);
+
+        return response()->json($response);
     }
 
 
@@ -214,17 +97,9 @@ class AuthController extends Controller
     public function deleteUser(Request $request): JsonResponse
     {
         $token = $request->bearerToken();
-        $key = 'example_key';
-        try {
-            $decoded = JWT::decode($token, new Key($key, 'HS256'));
-            $user = (new User)->findOrFail($decoded->user_id);
-            if ($decoded->user_id == $user->id) {
-                $user->delete();
-                return response()->json(['data' => true, "message" => "user deleted successfully"]);
-            }
-        } catch (ExpiredException) {
-            $message = ['message' => false];
-        }
-        return response()->json($message, 400);
+
+        $response = $this->authService->deleteUser($token);
+
+        return response()->json($response['message'], $response['status']);
     }
 }

@@ -1,27 +1,27 @@
 version: '3.8'
 services:
-  php:
-    image: damou/laravel-api-ssl-2:latest
-    container_name: php-library-app
+  library-app-auth:
+    image: damou/library-app-auth:dev
+    container_name: library-app-auth-container
     volumes:
       - .:/var/www/html/
     ports:
       - "8080:80"
     networks:
-      - library-app_network
+      - library-app-network
 
-  mongo:
+  library-app-auth-db:
     image: mongo:latest
-    container_name: mongodb-library-app
+    container_name: library-app-auth-db
     hostname: mongodb
     volumes:
       - ./database/seeders/:/data
     ports:
       - "27018:27017"
     networks:
-      - library-app_network
+      - library-app-network
 
 networks:
-  library-app_network:
+  library-app-network:
     driver: bridge
-    name: library-app_network
+    name: library-app-network

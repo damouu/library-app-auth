@@ -25,7 +25,7 @@ class JWTService
     public function createToken(array $payload): string
     {
         $payload['iat'] = time();
-        $payload['nbf'] = 1357000000;
+        $payload['nbf'] = time();
         $payload['exp'] = time() + 3600;
 
         return JWT::encode($payload, $this->secret, $this->algorithm);

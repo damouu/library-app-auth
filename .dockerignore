@@ -25,8 +25,7 @@ Homestead.json
 .idea
 .gitignore
 .dockerignore
-compose.yaml
-Dockerfile
+compose.yml
 vhost.conf
 .git
 .gitattributes

@@ -1,35 +1,23 @@
 # Use the official PHP image as a base image
-FROM damou/laravel-mongo:3
+FROM php:8.2-apache AS build
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    locales \
     zip \
-    jpegoptim optipng pngquant gifsicle \
-    vim \
     unzip \
     git \
     curl \
     libzip-dev \
-    libpq-dev \
     libonig-dev \
     libssl-dev \
     pkg-config \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd \
-    && docker-php-ext-install pdo pdo_mysql pdo_pgsql mbstring zip exif pcntl \
+    && docker-php-ext-install mbstring zip \
     && pecl install mongodb \
     && docker-php-ext-enable mongodb
 
-RUN docker-php-ext-install pdo pdo_mysql pdo_pgsql mbstring zip exif pcntl
-
-RUN docker-php-ext-enable mongodb
-
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+RUN a2enmod rewrite
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
@@ -48,4 +36,4 @@ COPY . /var/www/html
 RUN chown -R www-data:www-data /var/www
 
 # Install project dependencies
-RUN composer install
+RUN composer install --no-dev --optimize-autoloader

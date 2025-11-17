@@ -18,6 +18,9 @@ class User extends Model
 
     protected $table = 'users';
     protected $primaryKey = '_id';
+    protected $keyType = 'string';
+
+    public $incrementing = false;
 
     /**
      * The attributes that are mass assignable.
@@ -25,11 +28,11 @@ class User extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'userName',
+        'user_name',
         'email',
         'password',
-        'avatar_img_URL',
-        'memberCardUUID'
+        'avatar_img_url',
+        'card_uuid'
     ];
 
     /**
@@ -51,7 +54,8 @@ class User extends Model
         return [
             'created_at' => 'datetime',
             'deleted_at' => 'datetime',
-            'last_loggedIn_at' => 'datetime',
+            'password' => 'hashed',
+            'last_logged_in_at' => 'datetime',
         ];
     }
 }

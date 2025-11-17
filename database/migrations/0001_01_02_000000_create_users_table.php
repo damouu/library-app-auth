@@ -13,14 +13,13 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('userName')->unique();
+            $table->string('user_name')->unique();
             $table->string('email')->unique();
-            $table->string('avatar_img_URL')->unique()->nullable();
-            $table->uuid('memberCardUUID')->nullable()->unique();
+            $table->string('avatar_img_url')->nullable();
+            $table->uuid('card_uuid')->nullable()->unique();
             $table->string('password');
-            $table->dateTime('last_loggedIn_at')->nullable();
-            $table->softDeletesDatetime('deleted_date')->nullable();
+            $table->dateTime('last_logged_in_at')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

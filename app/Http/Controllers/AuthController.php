@@ -8,6 +8,7 @@ use Exception;
 use Firebase\JWT\ExpiredException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -32,11 +33,14 @@ class AuthController extends Controller
 
         $validatedData = $userRequest->validated();
 
-        $jwt = $this->authService->register($validatedData);
+        $response = $this->authService->register($validatedData);
 
         return response()->json([
-            'message' => true,
-            'token' => $jwt,
+            'token_type' => 'Bearer',
+            'expires_in' => $response['expires_in'],
+            'expires_at' => $response['expires_at'],
+            'access_token' => $response['jwt'],
+            'memberCardUUID' => $response['memberCardUUID']
         ], 201);
     }
 
@@ -58,11 +62,14 @@ class AuthController extends Controller
             return response()->json(['message' => 'Missing credentials'], 401);
         }
 
-        $jwt = $this->authService->login($email, $password);
+        $response = $this->authService->login($email, $password);
 
         return response()->json([
-            'message' => true,
-            'token' => $jwt,
+            'token_type' => 'Bearer',
+            'expires_in' => $response['expires_in'],
+            'expires_at' => $response['expires_at'],
+            'access_token' => $response['jwt'],
+            'memberCardUUID' => $response['memberCardUUID']
         ]);
     }
 
@@ -72,16 +79,14 @@ class AuthController extends Controller
      * JWTの有効期限されているならExpiredExceptionで例外のエーラを発生されます。
      *
      * @param Request $request
-     * @return JsonResponse
+     * @return array
      * @throws ExpiredException
      */
-    public function getUserProfile(Request $request): JsonResponse
+    public function getUserProfile(Request $request): array
     {
         $token = $request->bearerToken();
 
-        $response = $this->authService->getUserProfile($token);
-
-        return response()->json($response);
+        return $this->authService->getUserProfile($token);
     }
 
 
@@ -91,15 +96,15 @@ class AuthController extends Controller
      * そうすれば、データーベースにユーザーのデータがされていたままだがIlluminateのORMでユーザーを検索されたら削除されているユーザーが出力されません。
      *
      * @param Request $request
-     * @return JsonResponse
-     * @throws ExpiredException
+     * @return Response
      */
-    public function deleteUser(Request $request): JsonResponse
+    public function deleteUser(Request $request): Response
     {
         $token = $request->bearerToken();
 
         $response = $this->authService->deleteUser($token);
 
-        return response()->json($response['message'], $response['status']);
+        return response(null, $response);
+
     }
 }

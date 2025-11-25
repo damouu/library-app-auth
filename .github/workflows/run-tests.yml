@@ -14,18 +14,23 @@ jobs:
       - name: Checkout code
       - uses: actions/checkout@v4
 
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
+      - name: Validate composer.json and composer.lock
+        run: composer validate --strict
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v3
         with:
-          php-version: '8.2'
-          extensions: mbstring, intl, pdo_mysql
-          coverage: xdebug
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
 
-      - name: Install Composer dependencies
-        run: composer install --no-progress --prefer-dist
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
 
-      - name: Run PHPUnit
-        run: vendor/bin/phpunit --coverage-text
+      - name: Run test suite
+        run: composer run-script test
 
       - name: Create an issue
         if: ${{ failure() }}

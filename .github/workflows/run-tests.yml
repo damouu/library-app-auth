@@ -13,6 +13,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, intl, pdo_mysql, mongodb
+          coverage: none
+
+      - name: Install correct MongoDB extension
+        run: |
+          sudo pecl install mongodb
+          echo "extension=mongodb.so" | sudo tee /etc/php/8.2/cli/conf.d/20-mongodb.ini
+
+
       - name: Validate composer.json and composer.lock
         run: composer validate --strict
 

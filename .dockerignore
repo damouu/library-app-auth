@@ -17,16 +17,27 @@ public_html/storage
 public_html/hot
 
 storage/*.key
+keys/
 Homestead.yaml
 Homestead.json
 /.vagrant
 .phpunit.result.cache
 
 .idea
+/tests
+seed.json
+phpunit.xml
+.env.example
+README.md
 .gitignore
 .dockerignore
-compose.yaml
-Dockerfile
+.github
+compose.yml
 vhost.conf
 .git
+Dockerfile.dev
+Dockerfile.prod
+xdebug-3.4.7.tgz
+xdebug.ini
+.env
 .gitattributes

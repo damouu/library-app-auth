@@ -2,15 +2,25 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Notifications\Notifiable;
+use MongoDB\Laravel\Eloquent\Model;
+
+class User extends Model
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    use SoftDeletes, HasFactory, Notifiable;
+
+    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    protected $table = 'users';
+    protected $primaryKey = '_id';
+    protected $keyType = 'string';
+
+    public $incrementing = false;
 
     /**
      * The attributes that are mass assignable.
@@ -18,9 +28,11 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'user_name',
         'email',
         'password',
+        'avatar_img_url',
+        'card_uuid'
     ];
 
     /**
@@ -29,8 +41,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $hidden = [
-        'password',
-        'remember_token',
+        'password'
     ];
 
     /**
@@ -41,8 +52,10 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
+            'created_at' => 'datetime',
+            'deleted_at' => 'datetime',
             'password' => 'hashed',
+            'last_logged_in_at' => 'datetime',
         ];
     }
 }

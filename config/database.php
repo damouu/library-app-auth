@@ -32,8 +32,8 @@ return [
     'connections' => [
         'mongodb' => [
             'driver' => 'mongodb',
-            'dsn' => env('MONGODB_URI', 'mongodb://mongo:27017'),
-            'database' => env('MONGODB_DATABASE', 'pokemon'),
+            'dsn' => env('MONGODB_URI'),
+            'database' => env('MONGODB_DATABASE'),
         ],
     ],
 

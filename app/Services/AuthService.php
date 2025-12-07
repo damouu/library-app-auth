@@ -9,6 +9,7 @@ use DateTimeZone;
 use Exception;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Junges\Kafka\Facades\Kafka;
 use Ramsey\Uuid\Uuid;
 
 class AuthService
@@ -20,11 +21,10 @@ class AuthService
     public function __construct(protected JWTService $JWTService)
     {
         $this->baseUrl = config('services.member_card.url');
-
     }
 
     /**
-     * @throws ValidationException
+     * @throws ValidationException|Exception
      */
     public function register(array $validator): array
     {
@@ -49,6 +49,12 @@ class AuthService
 
         } else {
 
+            Kafka::publish()
+                ->onTopic('auth-create-topic')
+                ->withKafkaKey("memberCardUUID")
+                ->withBodyKey('memberCardUUID', $user->card_uuid)
+                ->send();
+
             $payload = [
                 'iss' => 'library-app-auth',
                 'aud' => 'library-app-borrow',
@@ -58,11 +64,9 @@ class AuthService
 
             $token = $this->JWTService->createToken($payload);
 
-            $response = $this->makeSafeApiCall("POST", $this->baseUrl . $user->card_uuid, $token, $user->_id);
-
             $expiresAt = time() + 3600;
 
-            return ["memberCardUUID" => $response["memberCardUUID"], "jwt" => $token, "expires_in" => 3600, 'expires_at' => date('c', $expiresAt)];
+            return ["memberCardUUID" => $payload["user_memberCardUUID"], "jwt" => $token, "expires_in" => 3600, 'expires_at' => date('c', $expiresAt)];
         }
     }
 
@@ -127,14 +131,13 @@ class AuthService
 
         $user = User::findOrFail($decoded->sub);
 
-        $response = $this->makeSafeApiCall("delete", $this->baseUrl . $user->card_uuid, $token, $user->_id);
+        Kafka::publish()
+            ->onTopic('auth-delete-topic')
+            ->withKafkaKey("memberCardUUID")
+            ->withBodyKey('memberCardUUID', $user->card_uuid)
+            ->send();
 
-        if ($response != 503 && is_null($response)) {
-            $user->delete();
-            return 200;
-        }
-
-        return $response;
+        return 200;
     }
 
 }

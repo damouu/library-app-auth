@@ -32,7 +32,7 @@ jobs:
         uses: mr-smithers-excellent/docker-build-push@v5
         with:
           directory: .
-          dockerfile: 'Dockerfile.prod'
+          dockerfile: 'docker/Dockerfile.prod'
           pushImage: true
           image: damou/library-app-auth
           tags: ${{ env.SHA }}

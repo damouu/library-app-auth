@@ -1,5 +1,5 @@
 ### Laravel template
-/vendor/
+#/vendor/
 node_modules/
 npm-debug.log
 yarn-error.log
@@ -38,6 +38,6 @@ vhost.conf
 Dockerfile.dev
 Dockerfile.prod
 xdebug-3.4.7.tgz
-xdebug.ini
-.env
+#xdebug.ini
+#.env
 .gitattributes

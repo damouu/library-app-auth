@@ -16,8 +16,8 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
-          extensions: mbstring, intl, pdo_mysql, mongodb
+          php-version: '8.4'
+          extensions: mbstring, intl, mongodb, rdkafka
           coverage: none
 
       - name: Validate composer.json and composer.lock

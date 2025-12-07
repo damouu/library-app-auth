@@ -1,5 +1,5 @@
 # Use the official PHP image as a base image
-FROM php:8.2-apache AS dev
+FROM php:8.4-apache AS dev
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -7,14 +7,18 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     git \
+    iputils-ping \
     curl \
     libzip-dev \
     libonig-dev \
     libssl-dev \
     pkg-config \
+    librdkafka-dev \
     && docker-php-ext-install mbstring zip \
     && pecl install mongodb \
-    && docker-php-ext-enable mongodb
+    && pecl install rdkafka \
+    && docker-php-ext-enable mongodb \
+    && docker-php-ext-enable rdkafka
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN a2enmod rewrite

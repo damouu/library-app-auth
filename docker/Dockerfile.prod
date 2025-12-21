@@ -26,7 +26,9 @@ RUN composer install --no-dev --optimize-autoloader --no-scripts
 
 FROM php:8.4-apache AS production
 
-COPY --from=composer_builder /usr/local/etc/php/conf.d/ /usr/local/etc/php/conf.d/
+COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
+
+RUN install-php-extensions rdkafka mongodb mbstring zip
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN a2enmod rewrite
@@ -39,6 +41,12 @@ COPY --from=composer_builder /var/www/html/vendor /var/www/html/vendor
 
 COPY . /var/www/html
 
-RUN chown -R www-data:www-data /var/www/html
+RUN mkdir -p storage/framework/sessions \
+             storage/framework/views \
+             storage/framework/cache \
+             bootstrap/cache \
+    && chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 storage bootstrap/cache
 
+# Clean up apt lists (Even though install-php-extensions does most of this)
 RUN rm -rf /var/lib/apt/lists/*

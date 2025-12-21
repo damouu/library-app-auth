@@ -1,43 +1,44 @@
-# Use the official PHP image as a base image
-FROM php:8.4-apache AS build
+FROM php:8.4-apache AS composer_builder
 
-# Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     zip \
     unzip \
-    git \
-    iputils-ping \
     curl \
+    git \
     libzip-dev \
     libonig-dev \
     libssl-dev \
     pkg-config \
     librdkafka-dev \
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
     && docker-php-ext-install mbstring zip \
     && pecl install mongodb \
     && pecl install rdkafka \
-    && docker-php-ext-enable mongodb \
-    && docker-php-ext-enable rdkafka
+    && docker-php-ext-enable mongodb rdkafka \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /var/www/html
+
+COPY composer.json composer.lock ./
+
+RUN composer install --no-dev --optimize-autoloader --no-scripts
+
+FROM php:8.4-apache AS production
+
+COPY --from=composer_builder /usr/local/etc/php/conf.d/ /usr/local/etc/php/conf.d/
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN a2enmod rewrite
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# Set working directory
 WORKDIR /var/www/html
 
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+COPY --from=composer_builder /var/www/html/vendor /var/www/html/vendor
 
-# Install composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-# Copy the existing application directory contents to the working directory
 COPY . /var/www/html
 
-RUN chown -R www-data:www-data /var/www
+RUN chown -R www-data:www-data /var/www/html
 
-# Install project dependencies
-RUN composer install --no-dev --optimize-autoloader
+RUN rm -rf /var/lib/apt/lists/*

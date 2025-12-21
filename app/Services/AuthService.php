@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\User;
-use App\Services\Traits\HttpClientTrait;
 use DateTime;
 use DateTimeZone;
 use Exception;
@@ -14,13 +13,10 @@ use Ramsey\Uuid\Uuid;
 
 class AuthService
 {
-    use HttpClientTrait;
 
-    protected mixed $baseUrl;
 
     public function __construct(protected JWTService $JWTService)
     {
-        $this->baseUrl = config('services.member_card.url');
     }
 
     /**
@@ -114,14 +110,13 @@ class AuthService
 
         $user = User::findOrFail($decoded->sub, ['user_name', 'avatar_img_url', 'email', 'card_uuid', 'last_logged_in_at']);
 
-        $response = $this->makeSafeApiCall("GET", $this->baseUrl . $user->card_uuid . '/history?sort=borrow_start_date&direction=asc', $token, $user->_id, (array)null);
-
         if ($decoded->sub == $user->id) {
-            $response = ["user" => $user, "borrowHistory" => $response];
+            $response = ["user" => $user];
         }
 
         return $response;
     }
+
 
     /**
      */

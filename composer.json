@@ -17,6 +17,8 @@
         "laravel/tinker": "^2.10.1",
         "mateusjunges/laravel-kafka": "^2.9.0",
         "mongodb/laravel-mongodb": "^5.5",
+        "open-telemetry/exporter-otlp": "*",
+        "open-telemetry/sdk": "^1.10",
         "ramsey/uuid": "^4.9"
     },
     "require-dev": {
@@ -76,7 +78,8 @@
         "sort-packages": true,
         "allow-plugins": {
             "pestphp/pest-plugin": true,
-            "php-http/discovery": true
+            "php-http/discovery": true,
+            "tbachert/spi": true
         }
     },
     "minimum-stability": "stable",

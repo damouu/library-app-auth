@@ -9,6 +9,9 @@ use Exception;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Junges\Kafka\Facades\Kafka;
+use OpenTelemetry\API\Globals;
+use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
+use OpenTelemetry\API\Trace\StatusCode;
 use Ramsey\Uuid\Uuid;
 
 class AuthService

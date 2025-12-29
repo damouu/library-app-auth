@@ -67,7 +67,7 @@ class AuthService
                     ->withKafkaKey("memberCardUUID")
                     ->withBody([
                         'memberCardUUID' => $user->card_uuid,
-                        'email' => $user->email,
+                        'user_email' => $user->email,
                         'username' => $user->user_name,
                         'created_at' => now()->toIso8601String(),
                     ])

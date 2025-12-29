@@ -27,32 +27,58 @@ class AuthService
      */
     public function register(array $validator): array
     {
-        $emailValid = $validator["email"];
-        $emailCrop = strpos($emailValid, "@");
-        $avatarImgUrl = $validator["user_name"] . "+" . (substr($emailValid, 0, $emailCrop));
+        $tracer = Globals::tracerProvider()->getTracer('auth-service');
 
-        User::create([
-            'user_name' => $validator["user_name"],
-            'email' => $validator["email"],
-            'avatar_img_url' => "https://avatar.iran.liara.run/username?username=" . $avatarImgUrl,
-            'card_uuid' => Uuid::uuid4()->toString(),
-            'password' => Hash::make($validator["password"]),
-        ]);
+        $parentSpan = $tracer->spanBuilder('user-registration')->startSpan();
+        $parentScope = $parentSpan->activate();
 
-        $user = User::where('email', $validator["email"])->firstOrFail();
+        try {
+            $emailValid = $validator["email"];
+            $emailCrop = strpos($emailValid, "@");
+            $avatarImgUrl = $validator["user_name"] . "+" . (substr($emailValid, 0, $emailCrop));
 
-        if (!$user || !Hash::check($validator["password"], $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
+            $dbSpan = $tracer->spanBuilder('mongodb-insert-user')->startSpan();
+            try {
+                User::create([
+                    'user_name' => $validator["user_name"],
+                    'email' => $validator["email"],
+                    'avatar_img_url' => "https://avatar.iran.liara.run/username?username=" . $avatarImgUrl,
+                    'card_uuid' => Uuid::uuid4()->toString(),
+                    'password' => Hash::make($validator["password"]),
+                ]);
+                $user = User::where('email', $validator["email"])->firstOrFail();
+                $dbSpan->setAttribute('user.email', $user->email);
+            } catch (\Exception $e) {
+                $dbSpan->recordException($e);
+                throw $e;
+            } finally {
+                $dbSpan->end();
+            }
 
-        } else {
+            $kafkaSpan = $tracer->spanBuilder('kafka-publish-auth-event')->startSpan();
+            $kafkaScope = $kafkaSpan->activate();
+            try {
+                $headers = [];
+                TraceContextPropagator::getInstance()->inject($headers);
 
-            Kafka::publish()
-                ->onTopic('auth-create-topic')
-                ->withKafkaKey("memberCardUUID")
-                ->withBodyKey('memberCardUUID', $user->card_uuid)
-                ->send();
+                Kafka::publish()
+                    ->onTopic('auth-create-topic')
+                    ->withHeaders($headers)
+                    ->withKafkaKey("memberCardUUID")
+                    ->withBody([
+                        'memberCardUUID' => $user->card_uuid,
+                        'email' => $user->email,
+                        'username' => $user->user_name,
+                        'created_at' => now()->toIso8601String(),
+                    ])
+                    ->send();
+            } catch (\Exception $e) {
+                $kafkaSpan->recordException($e);
+                throw $e;
+            } finally {
+                $kafkaSpan->end();
+                $kafkaScope->detach();
+            }
 
             $payload = [
                 'iss' => 'library-app-auth',
@@ -62,11 +88,25 @@ class AuthService
             ];
 
             $token = $this->JWTService->createToken($payload);
-
             $expiresAt = time() + 3600;
 
-            return ["memberCardUUID" => $payload["user_memberCardUUID"], "jwt" => $token, "expires_in" => 3600, 'expires_at' => date('c', $expiresAt)];
+            return [
+                "memberCardUUID" => $payload["user_memberCardUUID"],
+                "jwt" => $token,
+                "expires_in" => 3600,
+                'expires_at' => date('c', $expiresAt)
+            ];
+
+        } catch (\Exception $e) {
+            $parentSpan->recordException($e);
+            $parentSpan->setStatus(StatusCode::STATUS_ERROR);
+            throw $e;
+        } finally {
+            $parentSpan->end();
+            $parentScope->detach();
         }
+        return ["memberCardUUID" => $payload["user_memberCardUUID"], "jwt" => $token, "expires_in" => 3600, 'expires_at' => date('c', $expiresAt)];
+
     }
 
     /**

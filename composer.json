@@ -64,7 +64,8 @@
         ],
         "test": [
             "@php artisan config:clear --ansi",
-            "@php artisan test"
+            "@php artisan test --coverage-clover storage/logs/clover.xml",
+            "@php scripts/check-coverage.php"
         ]
     },
     "extra": {

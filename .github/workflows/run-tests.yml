@@ -18,7 +18,10 @@ jobs:
         with:
           php-version: '8.4'
           extensions: mbstring, intl, mongodb, rdkafka
-          coverage: none
+          coverage: xdebug
+
+      - name: Fix git ownership
+        run: git config --global --add safe.directory /github/workspace
 
       - name: Validate composer.json and composer.lock
         run: composer validate --strict
@@ -37,21 +40,6 @@ jobs:
 
       - name: Run test suite
         run: composer run-script test
-
-      - name: Create an issue
-        if: ${{ failure() }}
-        uses: JasonEtco/create-an-issue@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          actor: ${{ github.actor }}
-          test: duplicate
-          sha: ${{ steps.AWS.outputs.GITHUB_SHA_SHORT }}
-          error: ${{ steps.mvn_test_error.outputs.msg }}
-          error_short: ${{ steps.mvn_test_error_short.outputs.msg }}
-        with:
-          assignees: ${{ github.actor }}
-          update_existing: true
-          search_existing: open
 
       - name: pull-request
         if: ${{ success() }}

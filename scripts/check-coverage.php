@@ -1,6 +1,6 @@
 <?php
 $cloverFile = 'storage/logs/clover.xml';
-$threshold = 4;
+$threshold = 2;
 $targetNamespace = 'app/Services';
 
 if (!file_exists($cloverFile)) {

@@ -58,7 +58,7 @@ jobs:
         if: ${{ failure() }}
         uses: bloobirds-it/action-youtrack-move@v1.0.0
         with:
-          github-token: ${{ secrets.MyWorkflow }}
+          github-token: ${{ secrets.MYWORKFLOW }}
           yt-url: ${{ secrets.YOUTRACK_URL }}
           yt-token: ${{ secrets.YOUTRACK_TOKEN }}
           yt-project-id: "LAP"

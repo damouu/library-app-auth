@@ -38,6 +38,13 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress
 
+      - name: Inject JWT Keys from Secrets
+        run: |
+          mkdir -p keys
+          echo "${{ secrets.JWT_PRIVATE_KEY }}" > keys/private.pem
+          echo "${{ secrets.JWT_PUBLIC_KEY }}" > keys/public.pem
+          chmod 600 keys/private.pem
+
       - name: Run test suite
         run: composer run-script test
 

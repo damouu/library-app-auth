@@ -44,6 +44,7 @@
         <env name="OTEL_PHP_DISABLED" value="true"/>
         <env name="OTEL_SDK_DISABLED" value="true"/>
         <env name="DB_CONNECTION" value="mongodb"/>
+        <env name="DB_DSN" value="mongodb://127.0.0.1:27017/testing"/>
         <env name="DB_HOST" value="127.0.0.1"/>
         <env name="DB_PORT" value="27017"/>
         <env name="DB_DATABASE" value="testing"/>

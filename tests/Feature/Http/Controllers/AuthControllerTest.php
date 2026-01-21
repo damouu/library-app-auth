@@ -16,6 +16,10 @@ class AuthControllerTest extends TestCase
     {
         parent::setUp();
         $this->authServiceMock = $this->mock(AuthService::class);
+
+        Validator::extend('unique', function () {
+            return true;
+        });
     }
 
     public function test_register_returns_json_with_token()

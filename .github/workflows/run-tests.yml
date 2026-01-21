@@ -7,16 +7,14 @@ on:
 
 jobs:
   Test:
-
     runs-on: ubuntu-latest
-
     env:
       APP_ENV: testing
-      DB_CONNECTION: mongodb
-      DB_DSN: "mongodb://127.0.0.1:27017/testing"
       OTEL_SDK_DISABLED: "true"
       OTEL_PHP_DISABLED: "true"
       OTEL_TRACES_EXPORTER: "none"
+      DB_CONNECTION: mongodb
+      DB_DSN: "mongodb://127.0.0.1:27017/testing"
 
     steps:
       - uses: actions/checkout@v4

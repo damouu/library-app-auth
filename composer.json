@@ -2,7 +2,7 @@
     "$schema": "https://getcomposer.org/schema.json",
     "name": "laravel/laravel",
     "type": "project",
-    "description": "図書館システムの認証APIは、アカウントを登録したり削除したりログインしたりすることが図書館システムにこのAPIお通じてできます。",
+    "description": "図書館システムの認証APIは、アカウントを登録したり削除したりログインしたりすることが図書館システムにこのAPIお通じてできます",
     "keywords": [
         "laravel",
         "framework"

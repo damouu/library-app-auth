@@ -3,7 +3,7 @@
 namespace Tests\Feature\Http\Controllers;
 
 use App\Services\AuthService;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\PresenceVerifierInterface;
 use Mockery;
 use Mockery\MockInterface;
 use Tests\TestCase;
@@ -17,9 +17,11 @@ class AuthControllerTest extends TestCase
         parent::setUp();
         $this->authServiceMock = $this->mock(AuthService::class);
 
-        Validator::extend('unique', function () {
-            return true;
-        });
+        $verifier = Mockery::mock(PresenceVerifierInterface::class);
+
+        $verifier->shouldReceive('getCount')->andReturn(0);
+
+        $this->app->make('validator')->setPresenceVerifier($verifier);
     }
 
     public function test_register_returns_json_with_token()

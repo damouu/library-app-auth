@@ -23,6 +23,8 @@
     <source>
         <include>
             <directory>app/Services</directory>
+            <directory>app/Models</directory>
+            <directory>app/Http/Controllers</directory>
         </include>
         <exclude>
             <directory>app/Providers</directory>
@@ -39,6 +41,8 @@
     <php>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="OTEL_PHP_DISABLED" value="true"/>
+        <env name="OTEL_SDK_DISABLED" value="true"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_STORE" value="array"/>
         <env name="MAIL_MAILER" value="array"/>

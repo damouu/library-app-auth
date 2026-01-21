@@ -51,6 +51,9 @@ jobs:
           echo "${{ secrets.JWT_PUBLIC_KEY }}" > keys/public.pem
           chmod 600 keys/private.pem
 
+      - name: Fix git ownership
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       - name: Run test suite
         run: composer run-script test
 

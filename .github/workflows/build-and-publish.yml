@@ -27,6 +27,10 @@ jobs:
           # Read the file content into an environment variable
           echo "SHA=$(cat sha.txt)" >> $GITHUB_ENV
 
+      - name: Checkout EXACT commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SHA }}
 
       - name: Docker Build and Push Action
         uses: mr-smithers-excellent/docker-build-push@v5

@@ -24,11 +24,6 @@ class AuthControllerTest extends TestCase
 
     public function test_register_returns_json_with_token()
     {
-
-        Validator::extend('unique', function () {
-            return true;
-        });
-
         $input = [
             'user_name' => 'testuser',
             'email' => 'test@example.com',

@@ -14,7 +14,8 @@ jobs:
       OTEL_PHP_DISABLED: "true"
       OTEL_TRACES_EXPORTER: "none"
       DB_CONNECTION: mongodb
-      DB_DSN: "mongodb://localhost:27017/unused"
+      MONGODB_URI: "mongodb://127.0.0.1:27017/unused"
+      MONGODB_DATABASE: "testing"
 
     steps:
       - uses: actions/checkout@v4

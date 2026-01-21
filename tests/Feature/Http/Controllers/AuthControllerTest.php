@@ -3,6 +3,7 @@
 namespace Tests\Feature\Http\Controllers;
 
 use App\Services\AuthService;
+use Illuminate\Support\Facades\Validator;
 use Mockery;
 use Mockery\MockInterface;
 use Tests\TestCase;
@@ -19,6 +20,11 @@ class AuthControllerTest extends TestCase
 
     public function test_register_returns_json_with_token()
     {
+
+        Validator::extend('unique', function () {
+            return true;
+        });
+
         $input = [
             'user_name' => 'testuser',
             'email' => 'test@example.com',

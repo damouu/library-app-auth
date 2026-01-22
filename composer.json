@@ -18,7 +18,9 @@
         "mongodb/laravel-mongodb": "^5.5",
         "open-telemetry/exporter-otlp": "^1.0",
         "open-telemetry/sdk": "^1.10",
-        "ramsey/uuid": "^4.9"
+        "predis/predis": "^3.3",
+        "ramsey/uuid": "^4.9",
+        "spatie/laravel-prometheus": "1.3.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

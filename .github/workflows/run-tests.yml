@@ -61,6 +61,12 @@ jobs:
       - name: Run test suite
         run: composer run-script test
 
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: storage/logs/clover.xml
+          fail_ci_if_error: true
+
       - name: pull-request
         if: ${{ success() }}
         uses: repo-sync/pull-request@v2

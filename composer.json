@@ -1,8 +1,8 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "damou/library-auth-service",
     "type": "project",
-    "description": "図書館システムの認証APIは、アカウントを登録したり削除したりログインしたりすることが図書館システムにこのAPIお通じてできます",
+    "description": "図書館管理システムの認証を担当するAPI。ユーザー認証・認可・アカウント管理を提供する。",
     "keywords": [
         "laravel",
         "framework"

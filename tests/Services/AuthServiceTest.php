@@ -73,7 +73,8 @@ class AuthServiceTest extends TestCase
             'id' => 'user-123',
             'email' => 'test@test.com',
             'user_name' => 'testuser',
-            'card_uuid' => 'uuid-123'
+            'card_uuid' => 'uuid-123',
+            'avatar_img_url' => 'https://bit.ly/3u'
         ];
 
         $userMock->shouldReceive('where')->andReturn(
@@ -83,7 +84,7 @@ class AuthServiceTest extends TestCase
         $input = ['user_name' => 'testuser', 'email' => 'test@test.com', 'password' => 'secret'];
         $result = $this->authService->register($input);
 
-        $this->assertEquals('uuid-123', $result['memberCardUUID']);
+        $this->assertEquals('mock-jwt-token', $result['jwt']);
         Kafka::assertPublishedOn('auth-create-topic');
 
     }
@@ -146,16 +147,17 @@ class AuthServiceTest extends TestCase
         $instanceMock->id = 'user-123';
         $instanceMock->card_uuid = $cardUuid;
         $instanceMock->password = $hashedPassword;
+        $instanceMock->user_name = 'testuser';
+        $instanceMock->email = $email;
+        $instanceMock->avatar_img_url = 'https://bit.ly/3u';
+
         $instanceMock->shouldReceive('save')->once()->andReturn(true);
 
         $result = $this->authService->login($email, $password);
 
-        $this->assertEquals($cardUuid, $result['memberCardUUID']);
         $this->assertEquals($generatedToken, $result['jwt']);
         $this->assertEquals(3600, $result['expires_in']);
         $this->assertArrayHasKey('expires_at', $result);
-
-
     }
 
 

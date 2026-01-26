@@ -84,14 +84,16 @@ class AuthService
                 'iss' => 'library-app-auth',
                 'aud' => 'library-app-borrow',
                 'sub' => $user->id,
-                'user_memberCardUUID' => $user->card_uuid
+                'user_memberCardUUID' => $user->card_uuid,
+                'avatar_img_url' => $user->avatar_img_url,
+                'name' => $user->user_name,
+                'email' => $user->email,
             ];
 
             $token = $this->JWTService->createToken($payload);
             $expiresAt = time() + 3600;
 
             return [
-                "memberCardUUID" => $payload["user_memberCardUUID"],
                 "jwt" => $token,
                 "expires_in" => 3600,
                 'expires_at' => date('c', $expiresAt)
@@ -105,7 +107,7 @@ class AuthService
             $parentSpan->end();
             $parentScope->detach();
         }
-        return ["memberCardUUID" => $payload["user_memberCardUUID"], "jwt" => $token, "expires_in" => 3600, 'expires_at' => date('c', $expiresAt)];
+        return ["jwt" => $token, "expires_in" => 3600, 'expires_at' => date('c', $expiresAt)];
 
     }
 
@@ -134,14 +136,17 @@ class AuthService
             'iss' => 'library-app-auth',
             'aud' => 'library-app-borrow',
             'sub' => $user->id,
-            'user_memberCardUUID' => $user->card_uuid
+            'user_memberCardUUID' => $user->card_uuid,
+            'avatar_img_url' => $user->avatar_img_url,
+            'name' => $user->user_name,
+            'email' => $user->email,
         ];
 
         $token = $this->JWTService->createToken($payload);
 
         $expiresAt = time() + 3600;
 
-        return ["memberCardUUID" => $user->card_uuid, "jwt" => $token, "expires_in" => 3600, 'expires_at' => date('c', $expiresAt)];
+        return ["jwt" => $token, "expires_in" => 3600, 'expires_at' => date('c', $expiresAt)];
 
     }
 

@@ -40,7 +40,6 @@ class AuthController extends Controller
             'expires_in' => $response['expires_in'],
             'expires_at' => $response['expires_at'],
             'access_token' => $response['jwt'],
-            'memberCardUUID' => $response['memberCardUUID']
         ], 201);
     }
 
@@ -69,7 +68,6 @@ class AuthController extends Controller
             'expires_in' => $response['expires_in'],
             'expires_at' => $response['expires_at'],
             'access_token' => $response['jwt'],
-            'memberCardUUID' => $response['memberCardUUID']
         ]);
     }
 

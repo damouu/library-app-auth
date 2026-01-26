@@ -39,8 +39,7 @@ class AuthControllerTest extends TestCase
             ->andReturn([
                 'expires_in' => 3600,
                 'expires_at' => '2026-01-21 13:00:00',
-                'jwt' => 'mock-jwt-token',
-                'memberCardUUID' => 'uuid-123'
+                'jwt' => 'mock-jwt-token'
             ]);
 
         $response = $this->postJson('/api/auth/register', $input);
@@ -49,7 +48,6 @@ class AuthControllerTest extends TestCase
             ->assertJson([
                 'token_type' => 'Bearer',
                 'access_token' => 'mock-jwt-token',
-                'memberCardUUID' => 'uuid-123'
             ]);
     }
 
@@ -73,7 +71,6 @@ class AuthControllerTest extends TestCase
                 'expires_in' => 3600,
                 'expires_at' => '2026-01-21 13:00:00',
                 'jwt' => 'mock-jwt-token',
-                'memberCardUUID' => 'uuid-123'
             ]);
 
         $response = $this->withHeaders([
@@ -81,7 +78,7 @@ class AuthControllerTest extends TestCase
         ])->postJson('/api/auth/login');
 
         $response->assertStatus(200)
-            ->assertJsonStructure(['access_token', 'memberCardUUID']);
+            ->assertJsonStructure(['access_token']);
     }
 
     public function test_get_user_profile_returns_user_data()

@@ -19,7 +19,6 @@ class User extends Model
     protected $table = 'users';
     protected $primaryKey = '_id';
     protected $keyType = 'string';
-
     public $incrementing = false;
 
     /**

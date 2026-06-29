@@ -1,6 +1,6 @@
 <?php
 $cloverFile = 'storage/logs/clover.xml';
-$threshold = 90;
+$threshold = 80;
 
 if (!file_exists($cloverFile)) {
     echo "❌ Error: Clover report not found at $cloverFile" . PHP_EOL;

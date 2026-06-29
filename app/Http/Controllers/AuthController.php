@@ -40,17 +40,9 @@ class AuthController extends Controller
      */
     public function register(UserRequest $userRequest): JsonResponse
     {
-
         $validatedData = $userRequest->validated();
-
-        $response = $this->authService->register($validatedData);
-
-        return response()->json([
-            'token_type' => 'Bearer',
-            'expires_in' => $response['expires_in'],
-            'expires_at' => $response['expires_at'],
-            'access_token' => $response['jwt'],
-        ], 201);
+        $response = $this->registerUserService->register($validatedData);
+        return response()->json($response->toArray(), 201);
     }
 
     /**
@@ -64,21 +56,12 @@ class AuthController extends Controller
      */
     public function login(Request $request): JsonResponse
     {
-        $email = $request->getUser();
-        $password = $request->getPassword();
-
-        if (!$email || !$password) {
-            return response()->json(['message' => 'Missing credentials'], 401);
-        }
-
-        $response = $this->authService->login($email, $password);
-
-        return response()->json([
-            'token_type' => 'Bearer',
-            'expires_in' => $response['expires_in'],
-            'expires_at' => $response['expires_at'],
-            'access_token' => $response['jwt'],
-        ]);
+        $dto = new LoginRequestDTO(
+            email: $request->getUser(),
+            password: $request->getPassword(),
+        );
+        $response = $this->loginUserService->login(loginRequestDTO: $dto);
+        return response()->json($response->toArray(), 201);
     }
 
 
@@ -94,8 +77,7 @@ class AuthController extends Controller
     public function getUserProfile(Request $request): UserProfileDTO
     {
         $token = $request->bearerToken();
-
-        return $this->authService->getUserProfile($token);
+        return $this->getUserProfile->getUserProfile($token);
     }
 
 

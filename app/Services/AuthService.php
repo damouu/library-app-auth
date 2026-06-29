@@ -12,9 +12,17 @@ use OpenTelemetry\API\Trace\SpanInterface;
 
 class AuthService
 {
-
-
-    public function __construct(protected JWTService $JWTService)
+    public function __construct(
+        protected JWTService              $jwtService,
+        protected TracingService          $tracingService,
+        protected EventPublisher          $eventPublisher,
+        protected UserCreatedEventFactory $userCreatedEventFactory,
+        protected UserDeletedEventFactory $userDeletedEventFactory,
+        protected JwtPayloadFactory       $jwtPayloadFactory,
+        protected UserRegistrationService $userRegistrationService,
+        protected UserRepository          $userRepository,
+        protected PasswordVerifier        $passwordVerifier,
+    )
     {
     }
 

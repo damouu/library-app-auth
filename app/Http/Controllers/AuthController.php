@@ -2,18 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\DTO\LoginRequestDTO;
+use App\DTO\UserProfileDTO;
 use App\Http\Requests\UserRequest;
 use App\Services\AuthService;
+use App\Services\GetUserProfile;
+use App\Services\LoginUserService;
+use App\Services\RegisterUserService;
 use Exception;
 use Firebase\JWT\ExpiredException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class AuthController extends Controller
 {
-    public function __construct(protected AuthService $authService)
+    public function __construct(
+        protected RegisterUserService $registerUserService,
+        protected LoginUserService    $loginUserService,
+        protected GetUserProfile      $getUserProfile,
+        protected AuthService         $authService,
+    )
     {
     }
 
@@ -22,10 +33,9 @@ class AuthController extends Controller
      * 入力されたのデータが適切な値である場合にJWTのペイロード部の内にはユーザーIDやstudentIDカード番号や有効期限を指定されるデータがencodeされてJWTを作成されてJSON形成のレスポンスにに返事されます。
      * バリデーションで入力されたが適切な値ではない場合はバリデーションの例外のエーラを発生されます。
      *
-     * @param Request $request
+     * @param UserRequest $userRequest
      * @return JsonResponse
-     * @throws ValidationException
-     * @throws Exception
+     * @throws Throwable
      * @author damouu
      */
     public function register(UserRequest $userRequest): JsonResponse
@@ -50,7 +60,7 @@ class AuthController extends Controller
      * @param Request $request
      * @return JsonResponse
      * @throws ValidationException
-     * @throws Exception
+     * @throws Exception|Throwable
      */
     public function login(Request $request): JsonResponse
     {
@@ -77,10 +87,11 @@ class AuthController extends Controller
      * JWTの有効期限されているならExpiredExceptionで例外のエーラを発生されます。
      *
      * @param Request $request
-     * @return array
+     * @return UserProfileDTO
      * @throws ExpiredException
+     * @throws Throwable
      */
-    public function getUserProfile(Request $request): array
+    public function getUserProfile(Request $request): UserProfileDTO
     {
         $token = $request->bearerToken();
 
@@ -95,14 +106,13 @@ class AuthController extends Controller
      *
      * @param Request $request
      * @return Response
+     * @throws Throwable
      */
-    public function deleteUser(Request $request): Response
+    public function deleteUser(Request $request)
     {
         $token = $request->bearerToken();
-
-        $response = $this->authService->deleteUser($token);
-
-        return response(null, $response);
-
+        abort_if(!$token, 401);
+        $this->authService->deleteUser($token);
+        return response()->noContent();
     }
 }

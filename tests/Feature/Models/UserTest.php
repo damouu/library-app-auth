@@ -8,8 +8,6 @@ use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Tests\TestCase;
 
-#[RunTestsInSeparateProcesses]
-#[PreserveGlobalState(false)]
 class UserTest extends TestCase
 {
 

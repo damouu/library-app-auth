@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\DTO\JwtPayloadDTO;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use stdClass;
+use Throwable;
 
 class JWTService
 {
@@ -31,6 +33,9 @@ class JWTService
         return JWT::encode($payload, $this->secret, $this->algorithm);
     }
 
+    /**
+     * @throws Throwable
+     */
     public function verifyToken(string $token): stdClass
     {
         return JWT::decode($token, new Key($this->publicKey, $this->algorithm));

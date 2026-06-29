@@ -2,17 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\User;
-use DateTime;
-use DateTimeZone;
-use Exception;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
-use Junges\Kafka\Facades\Kafka;
-use OpenTelemetry\API\Globals;
-use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
-use OpenTelemetry\API\Trace\StatusCode;
-use Ramsey\Uuid\Uuid;
+use App\Contracts\PasswordVerifier;
+use App\Factory\JwtPayloadFactory;
+use App\Factory\UserCreatedEventFactory;
+use App\Factory\UserDeletedEventFactory;
+use App\Kafka\EventPublisher;
+use App\Repository\UserRepository;
+use OpenTelemetry\API\Trace\SpanInterface;
 
 class AuthService
 {
@@ -22,165 +18,22 @@ class AuthService
     {
     }
 
+
     /**
-     * @throws ValidationException|Exception
+     * @throws \Throwable
      */
-    public function register(array $validator): array
+    public function deleteUser(string $token): void
     {
-        $tracer = Globals::tracerProvider()->getTracer('auth-service');
-
-        $parentSpan = $tracer->spanBuilder('user-registration')->startSpan();
-        $parentScope = $parentSpan->activate();
-
-        try {
-            $emailValid = $validator["email"];
-            $emailCrop = strpos($emailValid, "@");
-            $avatarImgUrl = $validator["user_name"] . "+" . (substr($emailValid, 0, $emailCrop));
-
-            $dbSpan = $tracer->spanBuilder('mongodb-insert-user')->startSpan();
-            try {
-                User::create([
-                    'user_name' => $validator["user_name"],
-                    'email' => $validator["email"],
-                    'avatar_img_url' => "https://avatar.iran.liara.run/username?username=" . $avatarImgUrl,
-                    'card_uuid' => Uuid::uuid4()->toString(),
-                    'password' => Hash::make($validator["password"]),
-                ]);
-                $user = User::where('email', $validator["email"])->firstOrFail();
-                $dbSpan->setAttribute('user.email', $user->email);
-            } catch (\Exception $e) {
-                $dbSpan->recordException($e);
-                throw $e;
-            } finally {
-                $dbSpan->end();
+        $this->tracingService->trace(
+            'user-delete',
+            function (SpanInterface $span) use ($token) {
+                $decoded = $this->jwtService->verifyToken($token);
+                $user = $this->userRepository->findByEmail($decoded->email);
+                $span->setAttribute('user.id', $user->id);
+                $event = $this->userDeletedEventFactory->fromUser($user);
+                $this->eventPublisher->publishDelete($event);
+                $this->userRepository->delete($user);
             }
-
-            $kafkaSpan = $tracer->spanBuilder('kafka-publish-auth-event')->startSpan();
-            $kafkaScope = $kafkaSpan->activate();
-            try {
-                $headers = [];
-                TraceContextPropagator::getInstance()->inject($headers);
-
-                Kafka::publish()
-                    ->onTopic('auth-create-topic')
-                    ->withHeaders($headers)
-                    ->withKafkaKey("memberCardUUID")
-                    ->withBody([
-                        'memberCardUUID' => $user->card_uuid,
-                        'user_email' => $user->email,
-                        'username' => $user->user_name,
-                        'created_at' => now()->toIso8601String(),
-                    ])
-                    ->send();
-            } catch (\Exception $e) {
-                $kafkaSpan->recordException($e);
-                throw $e;
-            } finally {
-                $kafkaSpan->end();
-                $kafkaScope->detach();
-            }
-
-            $payload = [
-                'iss' => 'library-app-auth',
-                'aud' => 'library-app-borrow',
-                'sub' => $user->id,
-                'user_memberCardUUID' => $user->card_uuid,
-                'avatar_img_url' => $user->avatar_img_url,
-                'name' => $user->user_name,
-                'email' => $user->email,
-            ];
-
-            $token = $this->JWTService->createToken($payload);
-            $expiresAt = time() + 3600;
-
-            return [
-                "jwt" => $token,
-                "expires_in" => 3600,
-                'expires_at' => date('c', $expiresAt)
-            ];
-
-        } catch (\Exception $e) {
-            $parentSpan->recordException($e);
-            $parentSpan->setStatus(StatusCode::STATUS_ERROR);
-            throw $e;
-        } finally {
-            $parentSpan->end();
-            $parentScope->detach();
-        }
-        return ["jwt" => $token, "expires_in" => 3600, 'expires_at' => date('c', $expiresAt)];
-
+        );
     }
-
-    /**
-     * @throws ValidationException
-     * @throws Exception
-     */
-    public function login(string $email, string $password): array
-    {
-        $user = User::where("email", $email)->firstOrFail();
-
-        if (!Hash::check($password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
-        }
-
-        $timeInParis = new DateTime("now", new DateTimeZone("Europe/Paris"));
-        date_default_timezone_set('Europe/Paris');
-        $timeInUTC = $timeInParis->setTimezone(new DateTimeZone('UTC'));
-
-        $user->last_logged_in_at = $timeInUTC;
-        $user->save();
-
-        $payload = [
-            'iss' => 'library-app-auth',
-            'aud' => 'library-app-borrow',
-            'sub' => $user->id,
-            'user_memberCardUUID' => $user->card_uuid,
-            'avatar_img_url' => $user->avatar_img_url,
-            'name' => $user->user_name,
-            'email' => $user->email,
-        ];
-
-        $token = $this->JWTService->createToken($payload);
-
-        $expiresAt = time() + 3600;
-
-        return ["jwt" => $token, "expires_in" => 3600, 'expires_at' => date('c', $expiresAt)];
-
-    }
-
-    /**
-     */
-    public function getUserProfile(string $token): array
-    {
-        $decoded = $this->JWTService->verifyToken($token);
-
-        $user = User::findOrFail($decoded->sub, ['user_name', 'avatar_img_url', 'email', 'card_uuid', 'last_logged_in_at']);
-
-        if ($decoded->sub == $user->id) {
-            $response = ["user" => $user];
-        }
-
-        return $response;
-    }
-
-
-    /**
-     */
-    public function deleteUser(string $token): null|int
-    {
-        $decoded = $this->JWTService->verifyToken($token);
-
-        $user = User::findOrFail($decoded->sub);
-
-        Kafka::publish()
-            ->onTopic('auth-delete-topic')
-            ->withKafkaKey("memberCardUUID")
-            ->withBodyKey('memberCardUUID', $user->card_uuid)
-            ->send();
-
-        return 200;
-    }
-
 }

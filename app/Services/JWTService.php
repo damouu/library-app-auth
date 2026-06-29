@@ -14,7 +14,9 @@ class JWTService
     private string $secret;
     private string $publicKey;
 
-    public function __construct()
+    public function __construct(
+        protected TracingService $tracingService,
+    )
     {
         $this->algorithm = 'RS256';
         $privateKeyPath = base_path('keys/private.pem');
@@ -24,13 +26,21 @@ class JWTService
         $this->secret = $privateKey;
     }
 
-    public function createToken(array $payload): string
+    /**
+     * @throws Throwable
+     */
+    public function createToken(JwtPayloadDTO $payload): string
     {
-        $payload['iat'] = time();
-        $payload['nbf'] = time();
-        $payload['exp'] = time() + 3600;
-
-        return JWT::encode($payload, $this->secret, $this->algorithm);
+        return $this->tracingService->trace(
+            'jwt-create-token',
+            function () use ($payload) {
+                return JWT::encode(
+                    $payload->toArray(),
+                    $this->secret,
+                    $this->algorithm
+                );
+            }
+        );
     }
 
     /**
@@ -38,7 +48,12 @@ class JWTService
      */
     public function verifyToken(string $token): stdClass
     {
-        return JWT::decode($token, new Key($this->publicKey, $this->algorithm));
+        return $this->tracingService->trace(
+            'jwt-verify-token',
+            function () use ($token) {
+                return JWT::decode($token, new Key($this->publicKey, $this->algorithm));
+            }
+        );
     }
 
 }

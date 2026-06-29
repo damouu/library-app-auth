@@ -19,7 +19,6 @@ class User extends Model
     protected $table = 'users';
     protected $primaryKey = '_id';
     protected $keyType = 'string';
-
     public $incrementing = false;
 
     /**
@@ -32,7 +31,8 @@ class User extends Model
         'email',
         'password',
         'avatar_img_url',
-        'card_uuid'
+        'card_uuid',
+        'id'
     ];
 
     /**

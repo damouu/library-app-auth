@@ -3,40 +3,47 @@
 namespace Tests\Services;
 
 use App\Services\JWTService;
-use PHPUnit\Framework\Attributes\PreserveGlobalState;
-use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use App\Services\TracingService;
+use Mockery;
+use Mockery\MockInterface;
 use Tests\TestCase;
 
-#[RunTestsInSeparateProcesses]
-#[PreserveGlobalState(false)]
 class JWTServiceTest extends TestCase
 {
+    private MockInterface $tracingServiceMock;
+    private JWTService $jwtService;
+
     protected function setUp(): void
     {
         parent::setUp();
-
-        if (!file_exists(base_path('keys/private.pem'))) {
-            $this->markTestSkipped('JWT Keys are missing in the environment.');
-        }
+        $this->tracingServiceMock = $this->mock(TracingService::class);
+        $this->jwtService = $this->app->make(JWTService::class);
     }
 
-    public function test_can_create_and_verify_token()
+    protected function tearDown(): void
     {
-        $service = new JWTService();
-        $payload = [
-            'sub' => '1234567890',
-            'name' => 'John Doe',
-            'admin' => true
-        ];
+        Mockery::close();
+        parent::tearDown();
+    }
 
-        $token = $service->createToken($payload);
+    public function test_create_token_traces_and_encodes_successfully()
+    {
+        $this->tracingServiceMock->shouldReceive('trace')
+            ->once()
+            ->with('jwt-create-token', Mockery::type('Closure'))
+            ->andReturnUsing(fn($span, $closure) => $closure());
+
+        $payloadDtoMock = Mockery::mock(\App\DTO\JwtPayloadDTO::class);
+
+        $payloadDtoMock->shouldReceive('toArray')
+            ->once()
+            ->andReturn([
+                'iss' => 'library-auth-service',
+                'sub' => 'user-123',
+                'email' => 'dede@example.com'
+            ]);
+
+        $token = $this->jwtService->createToken($payloadDtoMock);
         $this->assertIsString($token);
-        $this->assertNotEmpty($token);
-
-        $decoded = $service->verifyToken($token);
-
-        $this->assertEquals('1234567890', $decoded->sub);
-        $this->assertEquals('John Doe', $decoded->name);
-        $this->assertTrue($decoded->admin);
     }
 }

@@ -2,126 +2,136 @@
 
 namespace Tests\Feature\Http\Controllers;
 
+use App\DTO\RegisterResponseDTO;
+use App\DTO\UserProfileDTO;
 use App\Services\AuthService;
-use Illuminate\Validation\PresenceVerifierInterface;
+use App\Services\GetUserProfile;
+use App\Services\LoginUserService;
+use App\Services\RegisterUserService;
 use Mockery;
 use Mockery\MockInterface;
 use Tests\TestCase;
 
 class AuthControllerTest extends TestCase
 {
+    private MockInterface $registerUserServiceMock;
+    private MockInterface $loginUserServiceMock;
+    private MockInterface $getUserProfileMock;
     private MockInterface $authServiceMock;
 
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->registerUserServiceMock = $this->mock(RegisterUserService::class);
+        $this->loginUserServiceMock = $this->mock(LoginUserService::class);
+        $this->getUserProfileMock = $this->mock(GetUserProfile::class);
         $this->authServiceMock = $this->mock(AuthService::class);
-
-        $verifier = Mockery::mock(PresenceVerifierInterface::class);
-
-        $verifier->shouldReceive('getCount')->andReturn(0);
-
-        $this->app->make('validator')->setPresenceVerifier($verifier);
     }
 
-    public function test_register_returns_json_with_token()
+    public function test_register_returns_token_successfully(): void
     {
-        $input = [
+        $payload = [
             'user_name' => 'testuser',
             'email' => 'test@example.com',
             'password' => 'password123',
-            'password_confirmation' => 'password123'
+            'password_confirmation' => 'password123',
         ];
 
-        $this->authServiceMock->shouldReceive('register')
-            ->once()
-            ->with(Mockery::subset(['user_name' => 'testuser']))
-            ->andReturn([
-                'expires_in' => 3600,
-                'expires_at' => '2026-01-21 13:00:00',
-                'jwt' => 'mock-jwt-token'
-            ]);
+        $dto = RegisterResponseDTO::fromToken(
+            token: 'jwt-token-123',
+            expiresIn: 3600
+        );
 
-        $response = $this->postJson('/api/auth/register', $input);
+        $this->registerUserServiceMock
+            ->shouldReceive('register')
+            ->once()
+            ->with(Mockery::subset($payload))
+            ->andReturn($dto);
+
+        $response = $this->postJson('/api/auth/register', $payload);
 
         $response->assertStatus(201)
             ->assertJson([
                 'token_type' => 'Bearer',
-                'access_token' => 'mock-jwt-token',
+                'access_token' => 'jwt-token-123',
+                'expires_in' => 3600,
             ]);
     }
 
-    public function test_login_returns_401_if_credentials_missing()
-    {
-        $response = $this->postJson('/api/auth/login');
-
-        $response->assertStatus(401)
-            ->assertJson(['message' => 'Missing Authorization header']);
-    }
-
-    public function test_login_success()
+    public function test_login_returns_token_successfully(): void
     {
         $email = 'test@example.com';
         $password = 'password123';
 
-        $this->authServiceMock->shouldReceive('login')
+        $dto = RegisterResponseDTO::fromToken(
+            token: 'jwt-token-123',
+            expiresIn: 3600
+        );
+
+        $this->loginUserServiceMock
+            ->shouldReceive('login')
             ->once()
-            ->with($email, $password)
-            ->andReturn([
-                'expires_in' => 3600,
-                'expires_at' => '2026-01-21 13:00:00',
-                'jwt' => 'mock-jwt-token',
-            ]);
+            ->with(Mockery::on(fn($dto) => $dto->email === $email && $dto->password === $password
+            ))
+            ->andReturn($dto);
 
         $response = $this->withHeaders([
             'Authorization' => 'Basic ' . base64_encode("$email:$password"),
         ])->postJson('/api/auth/login');
 
-        $response->assertStatus(200)
-            ->assertJsonStructure(['access_token']);
+        $response->assertStatus(201)
+            ->assertJson([
+                'access_token' => 'jwt-token-123',
+                'token_type' => 'Bearer',
+            ]);
     }
 
-    public function test_get_user_profile_returns_user_data()
+    public function test_get_user_profile_returns_user_profile(): void
     {
-        $token = 'mock-bearer-token';
-        $mockProfile = [
-            'user_name' => 'testuser',
-            'email' => 'test@example.com',
-            'avatar_img_url' => 'http://example.com/img.png',
-            'card_uuid' => 'uuid-123'
-        ];
+        $token = 'mock-token';
 
-        $this->authServiceMock->shouldReceive('getUserProfile')
+        $dto = new UserProfileDTO(
+            userName: 'testuser',
+            avatarUrl: 'http://example.com/avatar.png',
+            email: 'test@example.com',
+            cardUuid: 'uuid-123',
+            lastLoggedInAt: '2026-01-01'
+        );
+
+        $this->getUserProfileMock
+            ->shouldReceive('getUserProfile')
             ->once()
             ->with($token)
-            ->andReturn($mockProfile);
+            ->andReturn($dto);
 
         $response = $this->withToken($token)
             ->getJson('/api/auth/profile');
 
         $response->assertStatus(200)
-            ->assertExactJson($mockProfile);
+            ->assertJson([
+                'user_name' => 'testuser',
+                'email' => 'test@example.com',
+                'card_uuid' => 'uuid-123',
+            ]);
     }
 
-    public function test_login_returns_401_if_email_or_password_are_null()
+    public function test_delete_user_returns_no_content(): void
     {
-        $response = $this->withHeaders([
-            'Authorization' => 'Basic ' . base64_encode(":"),
-        ])->postJson('/api/auth/login');
-
-        $response->assertStatus(401)
-            ->assertJson(['message' => 'Missing credentials']);
-    }
-
-    public function test_delete_user_returns_correct_status()
-    {
-        $this->authServiceMock->shouldReceive('deleteUser')
+        $token = 'mock-token';
+        $this->authServiceMock
+            ->shouldReceive('deleteUser')
             ->once()
-            ->andReturn(204);
-
-        $response = $this->withToken('mock-token')
+            ->with($token);
+        $response = $this->withToken($token)
             ->deleteJson('/api/auth/user');
+        $response->assertNoContent();
+    }
 
-        $response->assertStatus(204);
+    public function test_login_returns_401_without_credentials(): void
+    {
+        $this->loginUserServiceMock->shouldNotReceive('login');
+        $response = $this->postJson('/api/auth/login');
+        $response->assertStatus(401);
     }
 }

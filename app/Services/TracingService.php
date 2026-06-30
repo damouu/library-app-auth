@@ -8,13 +8,17 @@ use OpenTelemetry\API\Trace\StatusCode;
 
 class TracingService
 {
-    public function trace(string $spanName, Closure $callback): mixed
+    public function trace(string $spanName, Closure $callback, array $attributes = []): mixed
     {
         $tracer = Globals::tracerProvider()->getTracer('auth-service');
 
         $span = $tracer
             ->spanBuilder($spanName)
             ->startSpan();
+
+        foreach ($attributes as $key => $value) {
+            $span->setAttribute($key, $value);
+        }
 
         $scope = $span->activate();
 

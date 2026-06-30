@@ -15,7 +15,7 @@ class JWTService
     private string $publicKey;
 
     public function __construct(
-        protected TracingService $tracingService,
+        private readonly TracingService $tracingService,
     )
     {
         $this->algorithm = 'RS256';
@@ -32,14 +32,16 @@ class JWTService
     public function createToken(JwtPayloadDTO $payload): string
     {
         return $this->tracingService->trace(
-            'jwt-create-token',
+            'jwt.create.token',
             function () use ($payload) {
                 return JWT::encode(
                     $payload->toArray(),
                     $this->secret,
                     $this->algorithm
                 );
-            }
+            }, [
+                'user.member_card' => $payload->memberCardUuid,
+            ]
         );
     }
 
@@ -49,10 +51,12 @@ class JWTService
     public function verifyToken(string $token): stdClass
     {
         return $this->tracingService->trace(
-            'jwt-verify-token',
+            'jwt.verify',
             function () use ($token) {
                 return JWT::decode($token, new Key($this->publicKey, $this->algorithm));
-            }
+            }, [
+                'jwt.algorithm' => $this->algorithm,
+            ]
         );
     }
 

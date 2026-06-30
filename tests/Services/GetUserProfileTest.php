@@ -18,7 +18,7 @@ class GetUserProfileTest extends TestCase
     private MockInterface $jwtServiceMock;
     private MockInterface $tracingServiceMock;
     private MockInterface $userRepositoryMock;
-    private GetUserProfile $getUserProfileService;
+    private GetUserProfile $service;
 
     protected function setUp(): void
     {
@@ -27,41 +27,45 @@ class GetUserProfileTest extends TestCase
         $this->jwtServiceMock = $this->mock(JWTService::class);
         $this->tracingServiceMock = $this->mock(TracingService::class);
         $this->userRepositoryMock = $this->mock(UserRepository::class);
-        $this->getUserProfileService = $this->app->make(GetUserProfile::class);
+
+        $this->service = $this->app->make(GetUserProfile::class);
     }
 
-    public function test_get_user_profile_returns_dto()
+    public function test_get_user_profile_returns_dto(): void
     {
-        $token = 'valid-jwt-token';
+        $token = 'valid-token';
 
         $this->tracingServiceMock->shouldReceive('trace')
             ->once()
-            ->with('user-get-profile', Mockery::type('Closure'))
-            ->andReturnUsing(fn($span, $closure) => $closure());
+            ->withArgs(function ($name, $closure, $attributes = []) {
+                return $name === 'user.get_profile' && is_callable($closure);
+            })
+            ->andReturnUsing(function ($name, $closure) {
+                return $closure();
+            });
 
-        // ✅ FIX: service expects email, not sub
-        $decodedToken = new stdClass();
-        $decodedToken->email = 'dede@example.com';
+        $decoded = new stdClass();
+        $decoded->email = 'test@example.com';
 
         $this->jwtServiceMock->shouldReceive('verifyToken')
             ->once()
             ->with($token)
-            ->andReturn($decodedToken);
+            ->andReturn($decoded);
 
-        $mockUser = new User([
-            'user_name' => 'test-user',
-            'email' => 'dede@example.com',
-            'avatar_img_url' => 'https://avatar.url',
-            'card_uuid' => 'some-uuid'
+        $user = new User([
+            'user_name' => 'test',
+            'email' => 'test@example.com',
+            'avatar_img_url' => 'url',
+            'card_uuid' => 'uuid'
         ]);
 
-        // ✅ FIX: method name must match service
         $this->userRepositoryMock->shouldReceive('findByEmail')
             ->once()
-            ->with('dede@example.com')
-            ->andReturn($mockUser);
+            ->with('test@example.com')
+            ->andReturn($user);
 
-        $result = $this->getUserProfileService->getUserProfile($token);
+        $result = $this->service->getUserProfile($token);
+
         $this->assertInstanceOf(UserProfileDTO::class, $result);
     }
 }

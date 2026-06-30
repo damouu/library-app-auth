@@ -2,43 +2,40 @@
 
 namespace App\Services;
 
-use App\Contracts\PasswordVerifier;
-use App\Factory\JwtPayloadFactory;
-use App\Factory\UserCreatedEventFactory;
 use App\Factory\UserDeletedEventFactory;
 use App\Kafka\EventPublisher;
 use App\Repository\UserRepository;
-use OpenTelemetry\API\Trace\SpanInterface;
+use Throwable;
 
 class AuthService
 {
     public function __construct(
-        protected JWTService              $jwtService,
-        protected TracingService          $tracingService,
-        protected EventPublisher          $eventPublisher,
-        protected UserCreatedEventFactory $userCreatedEventFactory,
-        protected UserDeletedEventFactory $userDeletedEventFactory,
-        protected JwtPayloadFactory       $jwtPayloadFactory,
-        protected UserRegistrationService $userRegistrationService,
-        protected UserRepository          $userRepository,
-        protected PasswordVerifier        $passwordVerifier,
+        private JWTService              $jwtService,
+        private TracingService          $tracingService,
+        private EventPublisher          $eventPublisher,
+        private UserDeletedEventFactory $userDeletedEventFactory,
+        private UserRepository          $userRepository,
     )
     {
     }
 
 
     /**
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function deleteUser(string $token): void
     {
         $this->tracingService->trace(
-            'user-delete',
-            function (SpanInterface $span) use ($token) {
+            'user.delete_profile',
+            function ($span) use ($token) {
                 $decoded = $this->jwtService->verifyToken($token);
                 $user = $this->userRepository->findByEmail($decoded->email);
-                $span->setAttribute('user.id', $user->id);
                 $event = $this->userDeletedEventFactory->fromUser($user);
+
+                $span->setAttribute('event.uuid', $event->metadata->eventUuid);
+                $span->setAttribute('event.type', $event->metadata->eventType);
+                $span->setAttribute('user.member_card.uuid', $user->member_card_uuid);
+
                 $this->eventPublisher->publishDelete($event);
                 $this->userRepository->delete($user);
             }

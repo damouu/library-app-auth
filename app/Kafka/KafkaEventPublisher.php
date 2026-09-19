@@ -30,19 +30,26 @@ class KafkaEventPublisher implements EventPublisher
 
                 Kafka::publish()
                     ->onTopic('auth-create-topic')
+                    ->withSasl(
+                        username: config('kafka.sasl.username'),
+                        password: config('kafka.sasl.password'),
+                        mechanisms: config('kafka.sasl.mechanisms'),
+                        securityProtocol: config('kafka.securityProtocol'),
+                    )
+                    ->withConfigOptions([
+                        'ssl.ca.location' => config('kafka.ca_location'),
+                    ])
                     ->withHeaders($headers)
                     ->withKafkaKey($event->data->memberCardUuid)
                     ->withBody($event->toArray())
-                    ->withConfigOptions(['ssl.ca.location' => env('KAFKA_CA_PATH'),])
                     ->send();
             },
             [
                 'event.uuid' => $event->metadata->eventUuid,
                 'event.type' => $event->metadata->eventType,
                 'event.source_service' => $event->metadata->sourceService,
-
                 'messaging.system' => 'kafka',
-                'messaging.destination.name' => 'auth-delete-topic',
+                'messaging.destination.name' => 'auth-create-topic',
                 'messaging.operation' => 'publish',
                 'messaging.message.id' => $event->data->memberCardUuid,
             ]
@@ -63,17 +70,24 @@ class KafkaEventPublisher implements EventPublisher
 
                 Kafka::publish()
                     ->onTopic('auth-delete-topic')
+                    ->withSasl(
+                        username: config('kafka.sasl.username'),
+                        password: config('kafka.sasl.password'),
+                        mechanisms: config('kafka.sasl.mechanisms'),
+                        securityProtocol: config('kafka.securityProtocol'),
+                    )
+                    ->withConfigOptions([
+                        'ssl.ca.location' => config('kafka.ca_location'),
+                    ])
                     ->withHeaders($headers)
                     ->withKafkaKey($event->data->memberCardUuid)
                     ->withBody($event->toArray())
-                    ->withConfigOptions(['ssl.ca.location' => env('KAFKA_CA_PATH'),])
                     ->send();
             },
             [
                 'event.uuid' => $event->metadata->eventUuid,
                 'event.type' => $event->metadata->eventType,
                 'event.source_service' => $event->metadata->sourceService,
-
                 'messaging.system' => 'kafka',
                 'messaging.destination.name' => 'auth-delete-topic',
                 'messaging.operation' => 'publish',

@@ -33,6 +33,7 @@ class KafkaEventPublisher implements EventPublisher
                     ->withHeaders($headers)
                     ->withKafkaKey($event->data->memberCardUuid)
                     ->withBody($event->toArray())
+                    ->withConfigOptions(['ssl.ca.location' => env('KAFKA_CA_PATH'),])
                     ->send();
             },
             [
@@ -65,6 +66,7 @@ class KafkaEventPublisher implements EventPublisher
                     ->withHeaders($headers)
                     ->withKafkaKey($event->data->memberCardUuid)
                     ->withBody($event->toArray())
+                    ->withConfigOptions(['ssl.ca.location' => env('KAFKA_CA_PATH'),])
                     ->send();
             },
             [

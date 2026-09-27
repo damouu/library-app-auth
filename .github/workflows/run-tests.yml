@@ -77,6 +77,12 @@ jobs:
           files: storage/logs/clover.xml
           fail_ci_if_error: true
 
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
+
       - name: pull-request
         if: ${{ success() }}
         uses: repo-sync/pull-request@v2

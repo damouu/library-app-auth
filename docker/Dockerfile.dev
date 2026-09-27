@@ -12,7 +12,8 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     pkg-config \
     librdkafka-dev \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN docker-php-ext-install mbstring zip \
     && pecl install mongodb \
@@ -20,14 +21,26 @@ RUN docker-php-ext-install mbstring zip \
     && docker-php-ext-enable mongodb rdkafka
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+
 RUN a2enmod rewrite
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
+    /etc/apache2/sites-available/*.conf
+
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' \
+    /etc/apache2/apache2.conf \
+    /etc/apache2/conf-available/*.conf
 
 RUN pecl install xdebug-3.4.7 \
     && docker-php-ext-enable xdebug
 
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+RUN curl -fsSL https://getcomposer.org/installer -o /tmp/composer-setup.php \
+    && curl -fsSL https://composer.github.io/installer.sig -o /tmp/composer-setup.sig \
+    && echo "$(cat /tmp/composer-setup.sig)  /tmp/composer-setup.php" | sha384sum -c - \
+    && php /tmp/composer-setup.php \
+        --install-dir=/usr/local/bin \
+        --filename=composer \
+    && rm -f /tmp/composer-setup.php /tmp/composer-setup.sig
 
 WORKDIR /var/www/html
 

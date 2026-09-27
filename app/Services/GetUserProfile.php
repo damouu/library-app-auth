@@ -6,6 +6,9 @@ use App\DTO\UserProfileDTO;
 use App\Repository\UserRepository;
 use Throwable;
 
+/**
+ *
+ */
 class GetUserProfile
 {
     public function __construct(
@@ -16,7 +19,10 @@ class GetUserProfile
     {
     }
 
+
     /**
+     * @param string $token
+     * @return UserProfileDTO
      * @throws Throwable
      */
     public function getUserProfile(string $token): UserProfileDTO
@@ -25,7 +31,7 @@ class GetUserProfile
             'user.get_profile',
             function () use ($token) {
                 $decoded = $this->jwtService->verifyToken($token);
-                $user = $this->userRepository->findByEmail($decoded->email);
+                $user = $this->userRepository->findByCardUuid($decoded->member_card_uuid);
                 return UserProfileDTO::fromModel($user);
             },
         );

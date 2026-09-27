@@ -45,7 +45,7 @@ class GetUserProfileTest extends TestCase
             });
 
         $decoded = new stdClass();
-        $decoded->email = 'test@example.com';
+        $decoded->member_card_uuid = 'uuid';
 
         $this->jwtServiceMock->shouldReceive('verifyToken')
             ->once()
@@ -59,9 +59,9 @@ class GetUserProfileTest extends TestCase
             'card_uuid' => 'uuid'
         ]);
 
-        $this->userRepositoryMock->shouldReceive('findByEmail')
+        $this->userRepositoryMock->shouldReceive('findByCardUuid')
             ->once()
-            ->with('test@example.com')
+            ->with('uuid')
             ->andReturn($user);
 
         $result = $this->service->getUserProfile($token);

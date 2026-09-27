@@ -34,6 +34,24 @@ class UserRepository
 
 
     /**
+     * @param string $cardUuid
+     * @return User
+     * @throws Throwable
+     */
+    public function findByCardUuid(string $cardUuid): User
+    {
+        return $this->tracingService->trace(
+            'repository.user.findByMemberCardUuid',
+            function () use ($cardUuid) {
+                return User::where('card_uuid', $cardUuid)->firstOrFail();
+            }, [
+                'db.collection' => 'users',
+            ]
+        );
+    }
+
+
+    /**
      * @throws Throwable
      */
     public function save(User $user): User

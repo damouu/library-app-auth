@@ -90,11 +90,7 @@ class LoginUserServiceTest extends TestCase
         $mockPayload = new JwtPayloadDTO(
             issuer: 'your-issuer-domain',
             audience: 'your-app-audience',
-            subject: 'user-123',
-            memberCardUuid: 'uuid-1234-5678',
-            avatarImgUrl: 'https://example.com/avatar.png',
-            username: 'testuser',
-            email: 'test@example.com'
+            memberCardUuid: 'uuid-1234-5678'
         );
 
         $this->jwtPayloadFactoryMock

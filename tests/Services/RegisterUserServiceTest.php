@@ -76,10 +76,7 @@ class RegisterUserServiceTest extends TestCase
 
         $mockUser = new User([
             'id' => Uuid::uuid4()->toString(),
-            'user_name' => 'testuser',
-            'email' => 'test@test.com',
-            'card_uuid' => 'card-123',
-            'avatar_img_url' => 'https://example.com/avatar.png',
+            'card_uuid' => 'card-123'
         ]);
 
         $this->userRepositoryMock
@@ -138,11 +135,7 @@ class RegisterUserServiceTest extends TestCase
         $mockPayload = new JwtPayloadDTO(
             issuer: 'auth-service',
             audience: 'api',
-            subject: (string)$mockUser->id,
-            memberCardUuid: 'card-123',
-            avatarImgUrl: 'https://example.com/avatar.png',
-            username: 'testuser',
-            email: 'test@test.com',
+            memberCardUuid: 'card-123'
         );
 
         $this->jwtPayloadFactoryMock

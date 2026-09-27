@@ -11,18 +11,25 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     pkg-config \
     librdkafka-dev \
-    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
+    && curl -fsSL https://getcomposer.org/installer -o /tmp/composer-setup.php \
+    && curl -fsSL https://composer.github.io/installer.sig -o /tmp/composer-setup.sig \
+    && echo "$(cat /tmp/composer-setup.sig)  /tmp/composer-setup.php" | sha384sum -c - \
+    && php /tmp/composer-setup.php \
+        --install-dir=/usr/local/bin \
+        --filename=composer \
+    && rm -f /tmp/composer-setup.php /tmp/composer-setup.sig \
     && docker-php-ext-install mbstring zip \
     && pecl install mongodb \
     && pecl install rdkafka \
     && docker-php-ext-enable mongodb rdkafka \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /var/www/html
 
 COPY composer.json composer.lock ./
 
-RUN composer install --no-dev --optimize-autoloader --no-scripts
+RUN composer install --no-dev --optimize-autoloader --no-scripts --ignore-platform-reqs
 
 FROM php:8.4-apache AS production
 
@@ -31,9 +38,15 @@ COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr
 RUN install-php-extensions rdkafka mongodb mbstring zip opentelemetry
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+
 RUN a2enmod rewrite
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
+    /etc/apache2/sites-available/*.conf
+
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' \
+    /etc/apache2/apache2.conf \
+    /etc/apache2/conf-available/*.conf
 
 WORKDIR /var/www/html
 
@@ -41,12 +54,12 @@ COPY --from=composer_builder /var/www/html/vendor /var/www/html/vendor
 
 COPY . /var/www/html
 
-RUN mkdir -p storage/framework/sessions \
-             storage/framework/views \
-             storage/framework/cache \
-             bootstrap/cache \
+RUN mkdir -p \
+        storage/framework/sessions \
+        storage/framework/views \
+        storage/framework/cache \
+        bootstrap/cache \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 775 storage bootstrap/cache
 
-# Clean up apt lists (Even though install-php-extensions does most of this)
 RUN rm -rf /var/lib/apt/lists/*

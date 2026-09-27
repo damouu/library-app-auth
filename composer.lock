@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c5cb1732faf9dbab8f8cf0a04be21a05",
+    "content-hash": "d8187fb24cf4b85c278f43c91ee69abb",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -3471,16 +3471,16 @@
         },
         {
             "name": "open-telemetry/exporter-otlp",
-            "version": "1.3.4",
+            "version": "1.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/opentelemetry-php/exporter-otlp.git",
-                "reference": "62e680d587beb42e5247aa6ecd89ad1ca406e8ca"
+                "reference": "283a0d66522f2adc6d8d7debfd7686be91c282be"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/opentelemetry-php/exporter-otlp/zipball/62e680d587beb42e5247aa6ecd89ad1ca406e8ca",
-                "reference": "62e680d587beb42e5247aa6ecd89ad1ca406e8ca",
+                "url": "https://api.github.com/repos/opentelemetry-php/exporter-otlp/zipball/283a0d66522f2adc6d8d7debfd7686be91c282be",
+                "reference": "283a0d66522f2adc6d8d7debfd7686be91c282be",
                 "shasum": ""
             },
             "require": {
@@ -3531,7 +3531,7 @@
                 "issues": "https://github.com/open-telemetry/opentelemetry-php/issues",
                 "source": "https://github.com/open-telemetry/opentelemetry-php"
             },
-            "time": "2026-01-15T09:31:34+00:00"
+            "time": "2026-02-05T09:44:52+00:00"
         },
         {
             "name": "open-telemetry/gen-otlp-protobuf",
@@ -3597,25 +3597,94 @@
             "time": "2025-09-17T23:10:12+00:00"
         },
         {
-            "name": "open-telemetry/sdk",
-            "version": "1.12.0",
+            "name": "open-telemetry/opentelemetry-auto-laravel",
+            "version": "1.9.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/opentelemetry-php/sdk.git",
-                "reference": "7f1bd524465c1ca42755a9ef1143ba09913f5be0"
+                "url": "https://github.com/opentelemetry-php/contrib-auto-laravel.git",
+                "reference": "fd81cb8e18af4b5405fb67c84622833886fa51da"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/opentelemetry-php/sdk/zipball/7f1bd524465c1ca42755a9ef1143ba09913f5be0",
-                "reference": "7f1bd524465c1ca42755a9ef1143ba09913f5be0",
+                "url": "https://api.github.com/repos/opentelemetry-php/contrib-auto-laravel/zipball/fd81cb8e18af4b5405fb67c84622833886fa51da",
+                "reference": "fd81cb8e18af4b5405fb67c84622833886fa51da",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "ext-opentelemetry": "*",
+                "laravel/framework": "^6.0 || ^7.0 || ^8.0 || ^9.0 || ^10.0 || ^11.0 || ^12.0 || ^13.0",
+                "open-telemetry/api": "^1.8",
+                "open-telemetry/sem-conv": "^1.38",
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.50",
+                "guzzlehttp/guzzle": "*",
+                "nunomaduro/collision": "*",
+                "open-telemetry/sdk": "^1.8",
+                "orchestra/testbench": ">=7.41.3",
+                "phan/phan": "^6.0",
+                "php-http/mock-client": "*",
+                "phpstan/phpstan": "^1.1",
+                "phpstan/phpstan-phpunit": "^1.0",
+                "phpunit/phpunit": "^9.5 || ^10 || ^11 || ^12 || ^13",
+                "psalm/plugin-phpunit": "^0.19.2",
+                "spatie/laravel-ignition": "*",
+                "vimeo/psalm": "6.4.0"
+            },
+            "suggest": {
+                "open-telemetry/opentelemetry-propagation-server-timing": "Automatically propagate the context to the client through server-timing headers.",
+                "open-telemetry/opentelemetry-propagation-traceresponse": "Automatically propagate the context to the client through trace-response headers."
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "_register.php"
+                ],
+                "psr-4": {
+                    "OpenTelemetry\\Contrib\\Instrumentation\\Laravel\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "description": "OpenTelemetry auto-instrumentation for Laravel",
+            "homepage": "https://opentelemetry.io/docs/languages/php/",
+            "keywords": [
+                "instrumentation",
+                "laravel",
+                "open-telemetry",
+                "opentelemetry",
+                "otel",
+                "tracing"
+            ],
+            "support": {
+                "source": "https://github.com/opentelemetry-php/contrib-auto-laravel/tree/1.9.1"
+            },
+            "time": "2026-09-17T05:26:08+00:00"
+        },
+        {
+            "name": "open-telemetry/sdk",
+            "version": "1.15.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/opentelemetry-php/sdk.git",
+                "reference": "77e1aa73850154abb86937d52a70883edc3b4547"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/opentelemetry-php/sdk/zipball/77e1aa73850154abb86937d52a70883edc3b4547",
+                "reference": "77e1aa73850154abb86937d52a70883edc3b4547",
                 "shasum": ""
             },
             "require": {
                 "ext-json": "*",
                 "nyholm/psr7-server": "^1.1",
-                "open-telemetry/api": "^1.7",
+                "open-telemetry/api": "^1.8",
                 "open-telemetry/context": "^1.4",
-                "open-telemetry/sem-conv": "^1.0",
+                "open-telemetry/sem-conv": "^1.38.0",
                 "php": "^8.1",
                 "php-http/discovery": "^1.14",
                 "psr/http-client": "^1.0",
@@ -3638,7 +3707,10 @@
                 "spi": {
                     "OpenTelemetry\\API\\Configuration\\ConfigEnv\\EnvComponentLoader": [
                         "OpenTelemetry\\API\\Instrumentation\\Configuration\\General\\ConfigEnv\\EnvComponentLoaderHttpConfig",
-                        "OpenTelemetry\\API\\Instrumentation\\Configuration\\General\\ConfigEnv\\EnvComponentLoaderPeerConfig"
+                        "OpenTelemetry\\API\\Instrumentation\\Configuration\\General\\ConfigEnv\\EnvComponentLoaderPeerConfig",
+                        "OpenTelemetry\\SDK\\ConfigEnv\\Trace\\SpanSuppressionStrategySemConv",
+                        "OpenTelemetry\\SDK\\ConfigEnv\\Trace\\SpanSuppressionStrategySpanKind",
+                        "OpenTelemetry\\SDK\\ConfigEnv\\Distribution\\DistributionConfigurationSdk"
                     ],
                     "OpenTelemetry\\SDK\\Common\\Configuration\\Resolver\\ResolverInterface": [
                         "OpenTelemetry\\SDK\\Common\\Configuration\\Resolver\\SdkConfigurationResolver"
@@ -3648,7 +3720,7 @@
                     ]
                 },
                 "branch-alias": {
-                    "dev-main": "1.12.x-dev"
+                    "dev-main": "1.14.x-dev"
                 }
             },
             "autoload": {
@@ -3691,7 +3763,7 @@
                 "issues": "https://github.com/open-telemetry/opentelemetry-php/issues",
                 "source": "https://github.com/open-telemetry/opentelemetry-php"
             },
-            "time": "2026-01-21T04:14:03+00:00"
+            "time": "2026-07-14T13:09:54+00:00"
         },
         {
             "name": "open-telemetry/sem-conv",
@@ -10005,5 +10077,5 @@
         "composer": "^2.0"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }

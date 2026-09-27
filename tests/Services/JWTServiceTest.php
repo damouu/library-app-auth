@@ -30,6 +30,9 @@ class JWTServiceTest extends TestCase
         parent::tearDown();
     }
 
+    /**
+     * @throws \Throwable
+     */
     public function test_create_token_traces_and_encodes_successfully(): void
     {
         $this->tracingServiceMock->shouldReceive('trace')
@@ -46,11 +49,7 @@ class JWTServiceTest extends TestCase
         $payload = new JwtPayloadDTO(
             issuer: 'library-auth-service',
             audience: 'library-api',
-            subject: 'user-123',
-            memberCardUuid: 'card-123',
-            avatarImgUrl: 'https://example.com/avatar.png',
-            username: 'testuser',
-            email: 'dede@example.com',
+            memberCardUuid: 'card-123'
         );
 
         $token = $this->jwtService->createToken($payload);
@@ -64,7 +63,11 @@ class JWTServiceTest extends TestCase
     public function test_verify_token_traces_and_decodes_successfully(): void
     {
         $this->tracingServiceMock->shouldReceive('trace')
-            ->with('jwt.create.token', Mockery::type(Closure::class), Mockery::any())
+            ->with(
+                'jwt.create.token',
+                Mockery::type(Closure::class),
+                Mockery::any()
+            )
             ->andReturnUsing(function ($name, $closure) {
                 return $closure();
             });
@@ -85,19 +88,15 @@ class JWTServiceTest extends TestCase
         $payload = new JwtPayloadDTO(
             issuer: 'library-auth-service',
             audience: 'library-api',
-            subject: 'user-123',
-            memberCardUuid: 'card-123',
-            avatarImgUrl: 'https://example.com/avatar.png',
-            username: 'testuser',
-            email: 'dede@example.com',
+            memberCardUuid: 'card-123'
         );
+
         $token = $this->jwtService->createToken($payload);
 
         $result = $this->jwtService->verifyToken($token);
 
         $this->assertInstanceOf(stdClass::class, $result);
-        $this->assertEquals('user-123', $result->sub);
-        $this->assertEquals('dede@example.com', $result->email);
+        $this->assertEquals('card-123', $result->member_card_uuid);
     }
 
     /**
@@ -107,7 +106,11 @@ class JWTServiceTest extends TestCase
     {
         $this->tracingServiceMock->shouldReceive('trace')
             ->once()
-            ->with('jwt.verify', Mockery::type(Closure::class), Mockery::any())
+            ->with(
+                'jwt.verify',
+                Mockery::type(Closure::class),
+                Mockery::any()
+            )
             ->andReturnUsing(function ($name, $closure) {
                 return $closure();
             });

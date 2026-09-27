@@ -16,9 +16,9 @@
         "laravel/tinker": "^2.10.1",
         "mateusjunges/laravel-kafka": "^2.9.0",
         "mongodb/laravel-mongodb": "^5.5",
-        "open-telemetry/exporter-otlp": "*",
-        "open-telemetry/opentelemetry-auto-laravel": "*",
-        "open-telemetry/sdk": "*",
+        "open-telemetry/exporter-otlp": "^1.4",
+        "open-telemetry/opentelemetry-auto-laravel": "^1.7",
+        "open-telemetry/sdk": "^1.14",
         "predis/predis": "^3.3",
         "ramsey/uuid": "^4.9",
         "spatie/laravel-prometheus": "^1.3"

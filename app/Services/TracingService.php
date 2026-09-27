@@ -5,9 +5,18 @@ namespace App\Services;
 use Closure;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Trace\StatusCode;
+use OpenTelemetry\Context\Context;
+use Throwable;
 
 class TracingService
 {
+    /**
+     * @param string $spanName
+     * @param Closure $callback
+     * @param array $attributes
+     * @return mixed
+     * @throws Throwable
+     */
     public function trace(string $spanName, Closure $callback, array $attributes = []): mixed
     {
         $tracer = Globals::tracerProvider()->getTracer('auth-service');

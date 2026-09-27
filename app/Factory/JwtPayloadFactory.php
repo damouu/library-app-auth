@@ -22,7 +22,6 @@ class JwtPayloadFactory
         return new JwtPayloadDTO(
             issuer: 'library-app-auth',
             audience: 'library-app-borrow',
-            subject: (string)$user->getKey(),
             memberCardUuid: $user->card_uuid
         );
     }

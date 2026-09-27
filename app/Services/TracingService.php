@@ -20,17 +20,18 @@ class TracingService
             $span->setAttribute($key, $value);
         }
 
-        $scope = $span->activate();
+        $context = $span->storeInContext(Context::getCurrent());
+
+        $scope = $context->activate();
 
         try {
             return $callback($span);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $span->recordException($e);
             $span->setStatus(StatusCode::STATUS_ERROR);
-
             throw $e;
         } finally {
-            $scope->detach();
+            @$scope->detach();
             $span->end();
         }
     }

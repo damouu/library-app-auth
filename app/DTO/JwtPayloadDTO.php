@@ -2,30 +2,34 @@
 
 namespace App\DTO;
 
-class JwtPayloadDTO
+/**
+ *
+ */
+readonly class JwtPayloadDTO
 {
+    /**
+     * @param string $issuer
+     * @param string $audience
+     * @param string|int $subject
+     * @param string $memberCardUuid
+     */
     public function __construct(
-        public readonly string     $issuer,
-        public readonly string     $audience,
-        public readonly string|int $subject,
-        public readonly string     $memberCardUuid,
-        public readonly string     $avatarImgUrl,
-        public readonly string     $username,
-        public readonly string     $email,
+        public string $issuer,
+        public string $audience,
+        public string $memberCardUuid
     )
     {
     }
 
+    /**
+     * @return array
+     */
     public function toArray(): array
     {
         return [
             'iss' => $this->issuer,
             'aud' => $this->audience,
-            'sub' => $this->subject,
-            'member_card_uuid' => $this->memberCardUuid,
-            'avatar_img_url' => $this->avatarImgUrl,
-            'user_name' => $this->username,
-            'email' => $this->email,
+            'member_card_uuid' => $this->memberCardUuid
         ];
     }
 }

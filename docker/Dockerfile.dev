@@ -18,7 +18,8 @@ RUN apt-get update && apt-get install -y \
 RUN docker-php-ext-install mbstring zip \
     && pecl install mongodb \
     && pecl install rdkafka \
-    && docker-php-ext-enable mongodb rdkafka
+    && pecl install opentelemetry \
+    && docker-php-ext-enable mongodb rdkafka opentelemetry
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 

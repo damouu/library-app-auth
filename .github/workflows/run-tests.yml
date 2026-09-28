@@ -69,11 +69,14 @@ jobs:
         run: composer install --prefer-dist --no-progress
 
       - name: Inject JWT Keys from Secrets
+        env:
+          JWT_PRIVATE_KEY: ${{ secrets.JWT_PRIVATE_KEY }}
+          JWT_PUBLIC_KEY: ${{ secrets.JWT_PUBLIC_KEY }}
         run: |
+          umask 077
           mkdir -p keys
-          echo "${{ secrets.JWT_PRIVATE_KEY }}" > keys/private.pem
-          echo "${{ secrets.JWT_PUBLIC_KEY }}" > keys/public.pem
-          chmod 600 keys/private.pem
+          printf '%s' "$JWT_PRIVATE_KEY" > keys/private.pem
+          printf '%s' "$JWT_PUBLIC_KEY" > keys/public.pem
 
       - name: Run test suite
         run: composer run-script test

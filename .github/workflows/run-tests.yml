@@ -81,6 +81,12 @@ jobs:
       - name: Run test suite
         run: composer run-script test
 
+      - name: Verify coverage report
+        run: |
+          ls -lh storage/logs/
+          test -s storage/logs/clover.xml
+          echo "Coverage report exists and is not empty"
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5
         with:
@@ -89,9 +95,11 @@ jobs:
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
+        with:
+          args: >
+            -Dsonar.php.coverage.reportPaths=storage/logs/clover.xml
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: https://sonarcloud.io
 
       - name: Create Pull Request
         if: ${{ success() }}

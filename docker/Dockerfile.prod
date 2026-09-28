@@ -1,6 +1,6 @@
 FROM php:8.4-apache AS composer_builder
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     zip \
     unzip \

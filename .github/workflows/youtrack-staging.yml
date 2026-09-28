@@ -10,7 +10,7 @@ jobs:
     if: github.event.label.name == 'Staging'
     runs-on: ubuntu-latest
     steps:
-      - uses: bloobirds-it/action-youtrack-move@v1.0.0
+      - uses: bloobirds-it/action-youtrack-move@2d323980954263fb5ee24772d66207387a21ae12
         with:
           github-token: ${{ secrets.MYWORKFLOW }}
           yt-url: ${{ secrets.YOUTRACK_URL }}
@@ -19,8 +19,8 @@ jobs:
           yt-column-triggers: "Test"
           yt-column-target: "Staging"
 
-      - uses: actions/checkout@v2
-      - uses: actions-ecosystem/action-add-labels@v1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions-ecosystem/action-add-labels@18f1af5e3544586314bbe15c0273249c770b2daf
         with:
           github_token: ${{ secrets.MYWORKFLOW  }}
           labels: automerge

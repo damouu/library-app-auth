@@ -28,12 +28,12 @@ jobs:
           echo "SHA=$(cat sha.txt)" >> $GITHUB_ENV
 
       - name: Checkout EXACT commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           ref: ${{ env.SHA }}
 
       - name: Docker Build and Push Action
-        uses: mr-smithers-excellent/docker-build-push@v5
+        uses: mr-smithers-excellent/docker-build-push@3714eb54de0c1b0f96899c36190090b21cd44a6e
         with:
           directory: .
           dockerfile: 'docker/Dockerfile.prod'

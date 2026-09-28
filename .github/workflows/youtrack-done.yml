@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.pull_request.merged == true }}
     steps:
-      - uses: bloobirds-it/action-youtrack-move@v1.0.0
+      - uses: bloobirds-it/action-youtrack-move@2d323980954263fb5ee24772d66207387a21ae12
         with:
           github-token: ${{ secrets.MYWORKFLOW }}
           yt-url: ${{ secrets.YOUTRACK_URL }}

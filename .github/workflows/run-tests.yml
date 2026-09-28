@@ -30,7 +30,7 @@ jobs:
       MONGODB_DATABASE: "testing"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: Set up PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
@@ -87,6 +87,13 @@ jobs:
           test -s storage/logs/clover.xml
           echo "Coverage report exists and is not empty"
 
+      - name: Inspect coverage report
+        run: |
+          echo "=== Clover header ==="
+          head -n 10 storage/logs/clover.xml
+          echo "=== Number of files ==="
+          grep -o '<file name=' storage/logs/clover.xml | wc -l
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5
         with:
@@ -98,6 +105,7 @@ jobs:
         with:
           args: >
             -Dsonar.php.coverage.reportPaths=storage/logs/clover.xml
+            -Dsonar.verbose=true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 

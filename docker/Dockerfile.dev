@@ -1,6 +1,6 @@
 FROM php:8.4-apache AS dev
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     zip \
     unzip \
@@ -57,7 +57,18 @@ COPY composer.json composer.lock ./
 
 RUN composer install --optimize-autoloader --no-scripts
 
-COPY . /var/www/html
+COPY app/ ./app/
+COPY bootstrap/ ./bootstrap/
+COPY config/ ./config/
+COPY database/ ./database/
+COPY public/ ./public/
+COPY resources/ ./resources/
+COPY routes/ ./routes/
+COPY tests/ ./tests/
+COPY scripts/ ./scripts/
+
+COPY artisan ./
+COPY phpunit.xml ./
 
 COPY xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
 

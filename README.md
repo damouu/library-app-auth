@@ -1,53 +1,41 @@
-# Library App Authentication Service / 認証サービス
+# Library App Authentication Service
 
 Distributed Library System — Authentication Service
 
-分散型図書館システム — 認証サービス
-
 ---
 
-## Overview / 概要
+## Overview
 
 The Authentication Service is the security foundation of the distributed library platform.
 
-It is responsible for user registration, user authentication, JWT token generation, identity verification, and account
-lifecycle management.
+It is responsible for user registration, user authentication, JWT token generation, identity verification, and account lifecycle management.
 
-The service provides a centralized authentication mechanism used by all protected services within the platform and
-publishes identity-related events through Kafka for downstream consumers.
+The service provides a centralized authentication mechanism used by all protected services within the platform and publishes identity-related events through Kafka for downstream consumers.
 
 ---
 
-Authentication Service は分散型図書館システムにおける認証基盤サービスです。
-
-ユーザー登録、認証、JWT 発行、本人確認、およびアカウントライフサイクル管理を担当します。
-
-本サービスはシステム全体の認証基盤として機能し、Kafka を通じて認証関連イベントを配信します。
-
----
-
-## Service Boundaries / サービス境界
+## Service Boundaries
 
 ### Provides
 
-* User registration
-* User authentication
-* JWT token generation
-* Identity verification
-* User profile retrieval
-* Account deletion
-* Authentication event publication
-* Access control enforcement
+- User registration
+- User authentication
+- JWT token generation
+- Identity verification
+- User profile retrieval
+- Account deletion
+- Authentication event publication
+- Access control enforcement
 
 ### Does Not Handle
 
-* Book catalog metadata management
-* Borrow transaction processing
-* Inventory management
-* Recommendation generation
-* Notification delivery
-* Analytical aggregation
-* Search indexing
+- Book catalog metadata management
+- Borrow transaction processing
+- Inventory management
+- Recommendation generation
+- Notification delivery
+- Analytical aggregation
+- Search indexing
 
 ---
 
@@ -68,7 +56,7 @@ Authentication Service は分散型図書館システムにおける認証基盤
 <!-- Docker -->
 
 [![Docker Build](https://github.com/damouu/library-app-auth/actions/workflows/build-and-publish.yml/badge.svg)](https://github.com/damouu/library-app-auth/actions/workflows/build-and-publish.yml)
-[![Docker Image](https://img.shields.io/docker/v/damou/library-app-auth?label=docker\&logo=docker)](https://hub.docker.com/r/damou/library-app-auth)
+[![Docker Image](https://img.shields.io/docker/v/damou/library-app-auth?label=docker&logo=docker)](https://hub.docker.com/r/damou/library-app-auth)
 [![Docker Pulls](https://img.shields.io/docker/pulls/damou/library-app-auth?logo=docker)](https://hub.docker.com/r/damou/library-app-auth)
 
 <!-- Git / Version -->
@@ -83,33 +71,20 @@ Authentication Service は分散型図書館システムにおける認証基盤
 
 ---
 
-## Responsibilities / 責務
+## Responsibilities
 
-### English
-
-* Register new users
-* Authenticate users
-* Generate JWT tokens
-* Validate user identities
-* Retrieve authenticated profiles
-* Manage account lifecycle
-* Publish authentication events
-* Enforce access control policies
-
-### 日本語
-
-* ユーザー登録
-* ユーザー認証
-* JWT 発行
-* 本人確認
-* ユーザープロファイル取得
-* アカウントライフサイクル管理
-* 認証イベント配信
-* アクセス制御管理
+- Register new users
+- Authenticate users
+- Generate JWT tokens
+- Validate user identities
+- Retrieve authenticated profiles
+- Manage account lifecycle
+- Publish authentication events
+- Enforce access control policies
 
 ---
 
-## Technology Stack / 技術スタック
+## Technology Stack
 
 | Category          | Technology                 |
 |-------------------|----------------------------|
@@ -129,9 +104,9 @@ Authentication Service は分散型図書館システムにおける認証基盤
 
 ---
 
-## API Endpoints / API エンドポイント
+## API Endpoints
 
-### Authentication Operations / 認証操作
+### Authentication Operations
 
 #### Register User
 
@@ -140,8 +115,6 @@ POST /auth/register
 ```
 
 Creates a new user account.
-
-新しいユーザーアカウントを登録します。
 
 ---
 
@@ -153,8 +126,6 @@ POST /auth/login
 
 Authenticates a user using Basic Authentication credentials and generates a JWT token.
 
-Basic 認証情報を利用してユーザー認証を行い、JWT を発行します。
-
 ---
 
 #### Get User Profile
@@ -164,8 +135,6 @@ GET /auth/profile
 ```
 
 Returns information about the authenticated user.
-
-認証済みユーザー情報を返却します。
 
 ---
 
@@ -177,11 +146,9 @@ DELETE /auth/user
 
 Deletes the authenticated user's account.
 
-認証済みユーザーアカウントを削除します。
-
 ---
 
-## Event Processing / イベント処理
+## Event Processing
 
 ### Published Kafka Topics
 
@@ -214,7 +181,7 @@ Downstream Service Consumption
 
 ---
 
-## Authentication Lifecycle / 認証ライフサイクル
+## Authentication Lifecycle
 
 Client Request
 
@@ -240,118 +207,44 @@ Profile Retrieval
 
 ---
 
-## API Documentation / API ドキュメント
+## API Documentation
 
-/swagger-ui/
-
----
-
-## Local Development / ローカル開発
-
-### Requirements
-
-* PHP 8.2
-* Composer
-* Docker
-* MongoDB
-* Redis
-* Kafka
+`/swagger-ui/`
 
 ---
 
-### Run
-
-```bash
-docker compose up --build
-```
-
----
-
-## Testing / テスト
-
-```bash
-composer test
-```
-
-### Includes
-
-* Unit tests
-* Integration tests
-* Controller tests
-* JWT validation tests
-* Kafka event validation
-* Coverage verification
-* Complexity verification
-
----
-
-### 日本語
-
-含まれるテスト:
-
-* ユニットテスト
-* 統合テスト
-* コントローラテスト
-* JWT 検証テスト
-* Kafka イベント検証
-* カバレッジ検証
-* 複雑度検証
-
----
-
-## Build Quality / 品質保証
+## Build Quality
 
 The CI pipeline enforces:
 
-* Automated test execution
-* Coverage thresholds
-* Pull request validation
-* Docker image publication
-* Branch protection workflows
-
----
-
-### 日本語
-
-CI パイプラインでは以下を保証します:
-
-* 自動テスト実行
-* カバレッジ閾値管理
-* Pull Request 検証
-* Docker イメージ配布
-* ブランチ保護ワークフロー
+- Automated test execution
+- Coverage thresholds
+- Pull request validation
+- Docker image publication
+- Branch protection workflows
 
 ---
 
 Environment-driven configuration.
 
-環境変数ベースで構成されています。
+---
+
+## Monitoring
+
+`/health`
+
+`/metrics`
 
 ---
 
-## Monitoring / モニタリング
-
-/health
-
-/metrics
-
----
-
-## Architectural Role / アーキテクチャ上の役割
+## Architectural Role
 
 The Authentication Service represents the security foundation of the distributed library system.
 
-All protected services rely on the identity verification and JWT tokens issued by this service to enforce access control
-and secure communication across the platform.
+All protected services rely on the identity verification and JWT tokens issued by this service to enforce access control and secure communication across the platform.
 
 ---
 
-Authentication Service は分散型図書館システム全体の認証基盤サービスです。
-
-各サービスは本サービスが発行する JWT を利用して認可処理を行い、システム全体の安全性を維持します。
-
----
-
-## License / ライセンス
+## License
 
 MIT
